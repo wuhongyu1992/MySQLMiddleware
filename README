@@ -1,1 +1,2 @@
-A middleware for MySQL to mearsure the latencies of queries from client.
+A middleware for MySQL 
+Goal: mearsure the latencies of queries from client
