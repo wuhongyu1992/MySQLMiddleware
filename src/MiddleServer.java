@@ -1,7 +1,7 @@
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.ServerSocket;
+import java.net.Socket;
 
 public class MiddleServer extends MiddleSocket {
 //	private Socket socket;
@@ -9,17 +9,24 @@ public class MiddleServer extends MiddleSocket {
 //	private int portNum;
 //	private DataOutputStream outData;
 //	private DataInputStream inData;
+	private boolean inTrax;
 	
-	public MiddleServer(String ip, int port) {
-		super(ip, port);
+	public MiddleServer() {
+		super();
+//		socket = inSock;
+		setInTrax(false);
 	}
 	
-	public void startServer() {
-		ServerSocket serverSock;
+	public void startServer(Socket inSock) {
+//		ServerSocket serverSock;
 		try {
-			serverSock = new ServerSocket(portNum);
-			System.out.println("server is waiting...");
-			socket = serverSock.accept();
+//			serverSock = new ServerSocket(portNum);
+			
+//			serverSock.setSoTimeout(5000);
+			
+//			System.out.println("server is waiting...");
+//			socket = serverSock.accept();
+			socket = inSock;
 
 			outData = new DataOutputStream(socket.getOutputStream());
 			inData = new DataInputStream(socket.getInputStream());
@@ -29,6 +36,24 @@ public class MiddleServer extends MiddleSocket {
 		}
 	}
 
+	public boolean isInTrax() {
+		return inTrax;
+	}
+
+	public void setInTrax(boolean inTrax) {
+		this.inTrax = inTrax;
+	}
+
+	public boolean hasInput() {
+		try {
+			return (inData.available() != 0);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
 //	
 //	public void sendOutput(byte[] b, int len) {
 //		try {

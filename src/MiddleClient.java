@@ -21,6 +21,7 @@ public class MiddleClient extends MiddleSocket {
 			System.exit(10);
 		}
 	}
+
 	
 //	public void reconnect() {
 //		try {
