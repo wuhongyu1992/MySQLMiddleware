@@ -49,8 +49,23 @@ public class MiddleSocket {
 		} catch (IOException ioe) {
 			System.out.println("Error in receiving data stream");
 		}
-//		System.out.println(len);
+		// System.out.println(len);
 		return len;
+	}
+
+	public boolean isConnected() {
+		// TODO Auto-generated method stub
+		return socket.isConnected();
+	}
+
+	public void close() {
+		// TODO Auto-generated method stub
+		try {
+			socket.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }

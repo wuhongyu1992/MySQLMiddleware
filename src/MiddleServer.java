@@ -53,6 +53,11 @@ public class MiddleServer extends MiddleSocket {
 		}
 		return false;
 	}
+
+//	public boolean isConnected() {
+//		// TODO Auto-generated method stub
+//		return socket.isConnected();
+//	}
 	
 //	
 //	public void sendOutput(byte[] b, int len) {

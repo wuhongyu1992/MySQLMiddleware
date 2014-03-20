@@ -21,6 +21,11 @@ public class MiddleClient extends MiddleSocket {
 			System.exit(10);
 		}
 	}
+//
+//	public boolean isConnected() {
+//		// TODO Auto-generated method stub
+//		return socket.isConnected();
+//	}
 
 	
 //	public void reconnect() {

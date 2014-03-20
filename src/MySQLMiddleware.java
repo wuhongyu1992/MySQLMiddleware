@@ -1,6 +1,8 @@
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 
 public class MySQLMiddleware {
@@ -95,17 +97,42 @@ public class MySQLMiddleware {
 		// midServer.sendOutput(serverDataArray);
 		//
 
+		try {
+			serverSock.setSoTimeout(10);
+		} catch (SocketException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
 		while (servers.size() > 0) {
 
-			for (int i = 0; i < servers.size();) {
-				if (servers.get(i).hasInput()) {
+			Socket newSock = null;
+			
+			try {
+				newSock = serverSock.accept();
+			} catch (SocketTimeoutException e1) {
+				e1.printStackTrace();
+			} catch (IOException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+			
+			if (newSock != null) {
+				addConnection(newSock);
+			}
+			
+			for (int i = 0; i < servers.size(); ++i) {
+				while (servers.get(i).hasInput()) {
 					try {
 						run(i);
 					} catch (inputException e) {
-						
+						System.out.println("catch inpout exception");
+						System.out.println("remove");
+						removeConnection(i);
+						--i;
+
 					}
 				}
-				++i;
 			}
 
 			// clientDataArray.clear();
@@ -164,20 +191,35 @@ public class MySQLMiddleware {
 		System.out.println("END");
 
 	}
-	
-	private class inputException extends Throwable{
-		
+
+	private static void removeConnection(int i) {
+		// TODO Auto-generated method stub
+		servers.get(i).close();
+		clients.get(i).close();
+
+		servers.remove(i);
+		clients.remove(i);
 	}
 
-	private static void run(int i) {
+	@SuppressWarnings("serial")
+	private static class inputException extends Exception {
+		public inputException() {
+
+		}
+	}
+
+	@SuppressWarnings("null")
+	private static void run(int i) throws inputException {
 		// TODO Auto-generated method stub
 		clientDataArray.clear();
 		do {
 			clientDataLen = servers.get(i).getInput(clientData);
 			addToList(clientDataArray, clientData, clientDataLen);
 		} while (clientDataLen == maxSize);
-		if (clientDataArray.size() == 0)
-			break;
+		if (clientDataArray.size() == 0) {
+			inputException e = null;
+			throw e;
+		}
 
 		if (traxBegin(clientDataArray)) {
 			servers.get(i).setInTrax(true);
@@ -208,8 +250,10 @@ public class MySQLMiddleware {
 
 		} while (serverDataLen == maxSize);
 
-		if (serverDataArray.size() == 0)
-			break;
+		if (serverDataArray.size() == 0) {
+			inputException e = new inputException();
+			throw e;
+		}
 
 		if (servers.get(i).isInTrax()) {
 			System.out.print("Latency: ");
