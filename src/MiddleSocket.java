@@ -29,6 +29,19 @@ public class MiddleSocket {
 	public void sendOutput(ArrayList<Byte> array) {
 		int len = array.size();
 		byte[] b = new byte[array.size()];
+		
+//		for (int i = 0; i < array.size(); ++i) {
+//			if (b[i] < (byte) 32) {
+//
+//				System.out.print(".");
+//
+//			} else if (b[i] >= (byte) 32 && b[i] < (byte) 127)
+//				System.out.print((char) b[i]);
+//			else
+//				System.out.printf(" %02x ", b[i]);
+//		}
+//		System.out.println();
+		
 		for (int i = 0; i < array.size(); ++i) {
 			b[i] = array.get(i).byteValue();
 		}

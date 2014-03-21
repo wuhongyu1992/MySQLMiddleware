@@ -2,6 +2,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class MiddleServer extends MiddleSocket {
 //	private Socket socket;
@@ -10,11 +11,17 @@ public class MiddleServer extends MiddleSocket {
 //	private DataOutputStream outData;
 //	private DataInputStream inData;
 	private boolean inTrax;
+	private int clientPortNum;
+	private ArrayList<String> trax;
+	private long latency;
 	
 	public MiddleServer() {
 		super();
 //		socket = inSock;
-		setInTrax(false);
+
+		inTrax = false;
+		trax = new ArrayList<String>();
+		setLatency(0);
 	}
 	
 	public void startServer(Socket inSock) {
@@ -34,8 +41,29 @@ public class MiddleServer extends MiddleSocket {
 		} catch (IOException ioe) {
 			System.out.println("Error in starting server");
 		}
+		
+		clientPortNum = socket.getPort();
+//		System.out.println(clientPortNum);
 	}
-
+	
+	public void printTrax() {
+		System.out.println("client(" + clientPortNum + ") transaction:");
+		for (int i = 0; i < trax.size(); ++i) {
+			System.out.println(trax.get(i));
+		}
+		System.out.println("Latency: " + latency + "ms");
+		System.out.println();
+		
+	}
+	
+	public void addLatency(long t) {
+		latency += t;
+	}
+	
+	public void addToTrax(String s) {
+		trax.add(s);
+	}
+	
 	public boolean isInTrax() {
 		return inTrax;
 	}
@@ -48,23 +76,24 @@ public class MiddleServer extends MiddleSocket {
 		try {
 			return (inData.available() != 0);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return false;
 	}
 
-//	public boolean isConnected() {
-//		// TODO Auto-generated method stub
-//		return socket.isConnected();
-//	}
-	
+	public void clearTrax() {
+		trax.clear();
+	}
+
+	public void setLatency(long latency) {
+		this.latency = latency;
+	}
+
 //	
 //	public void sendOutput(byte[] b, int len) {
 //		try {
 //			outData.write(b, 0, len);
 //		} catch (IOException e) {
-//			// TODO Auto-generated catch block
 //			System.out.println("Error in output");
 //		}
 //	}

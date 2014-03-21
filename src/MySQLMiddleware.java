@@ -29,7 +29,6 @@ public class MySQLMiddleware {
 		try {
 			serverSock = new ServerSocket(3306);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -37,154 +36,51 @@ public class MySQLMiddleware {
 		try {
 			firstSock = serverSock.accept();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		addConnection(firstSock);
 
-		// MiddleClient midClient = new MiddleClient("127.0.0.1", 3320);
-		// midClient.startClient();
-
-		// serverDataLen = midClient.getInput(serverData);
-		// showData(serverData, serverDataLen);
-		// addToList(serverDataArray, serverData, serverDataLen);
-
-		// midClient.reconnect();
-		//
-		// serverDataLen = midClient.getInput(serverData);
-		// showData(serverData, serverDataLen);
-		// addToList(serverDataArray, serverData, serverDataLen);
-		//
-		// if (1 == 1 ) return;
-
-		// MiddleServer midServer = new MiddleServer("127.0.0.1", 3306);
-		// midServer.startServer();
-
-		// midServer.sendOutput(serverDataArray);
-		//
-		// clientDataLen = midServer.getInput(clientData);
-		// showData(clientData, clientDataLen);
-		// addToList(clientDataArray, clientData, clientDataLen);
-		//
-		// System.out.println("send client info");
-		// midClient.sendOutput(clientDataArray);
-		//
-		// serverDataLen = midClient.getInput(serverData);
-		// showData(serverData, serverDataLen);
-		// serverDataArray.clear();
-		// addToList(serverDataArray, serverData, serverDataLen);
-		//
-		// System.out.println("get server empty packet");
-		//
-		// midServer.sendOutput(serverDataArray);
-		//
-		// clientDataLen = midServer.getInput(clientData);
-		// clientDataArray.clear();
-		// addToList(clientDataArray, clientData, clientDataLen);
-		// showData(clientData, clientDataLen);
-		//
-		// System.out.println("111111111111111111");
-		//
-		// midClient.sendOutput(clientDataArray);
-		//
-		// serverDataLen = midClient.getInput(serverData);
-		// serverDataArray.clear();
-		// addToList(serverDataArray, serverData, serverDataLen);
-		// showData(serverData, serverDataLen);
-		//
-		// System.out.println("2222222222222222222222222");
-		//
-		// midServer.sendOutput(serverDataArray);
-		//
-
 		try {
 			serverSock.setSoTimeout(10);
 		} catch (SocketException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		
+
 		while (servers.size() > 0) {
 
 			Socket newSock = null;
-			
+
 			try {
 				newSock = serverSock.accept();
 			} catch (SocketTimeoutException e1) {
-				e1.printStackTrace();
+				// e1.printStackTrace();
 			} catch (IOException e2) {
-				// TODO Auto-generated catch block
 				e2.printStackTrace();
 			}
-			
+
 			if (newSock != null) {
 				addConnection(newSock);
+
+				// System.out.println(servers.size());
 			}
-			
+
 			for (int i = 0; i < servers.size(); ++i) {
-				while (servers.get(i).hasInput()) {
+				if (!servers.get(i).isConnected()) {
+					removeConnection(i);
+					--i;
+					continue;
+				}
+
+				if (servers.get(i).hasInput()) {
 					try {
 						run(i);
 					} catch (inputException e) {
-						System.out.println("catch inpout exception");
-						System.out.println("remove");
 						removeConnection(i);
+						// System.out.println(servers.size());
 						--i;
-
 					}
 				}
 			}
-
-			// clientDataArray.clear();
-			// do {
-			// clientDataLen = servers.get(0).getInput(clientData);
-			// addToList(clientDataArray, clientData, clientDataLen);
-			// } while (clientDataLen == maxSize);
-			// if (clientDataArray.size() == 0)
-			// break;
-			//
-			// if (traxBegin(clientDataArray)) {
-			// inTrax = true;
-			// System.out.println("Transaction begins.");
-			// }
-			//
-			// if (inTrax) {
-			// System.out.print("Client: ");
-			// showClientData(clientDataArray);
-			// }
-			//
-			// if (inTrax && traxEnd(clientDataArray)) {
-			// inTrax = false;
-			// System.out.println("Transaction ends.");
-			// }
-			//
-			// recTime = 0;
-			// serverDataArray.clear();
-			// clients.get(0).sendOutput(clientDataArray);
-			// sendTime = System.currentTimeMillis();
-			//
-			// do {
-			// serverDataLen = clients.get(0).getInput(serverData);
-			// if (recTime == 0)
-			// recTime = System.currentTimeMillis();
-			//
-			// addToList(serverDataArray, serverData, serverDataLen);
-			//
-			// } while (serverDataLen == maxSize);
-			//
-			// if (serverDataArray.size() == 0)
-			// break;
-			//
-			// if (inTrax) {
-			// System.out.print("Latency: ");
-			// System.out.print(recTime - sendTime);
-			// System.out.println(" ms");
-			// }
-
-			// System.out.print("Server: ");
-			// showData(serverData, serverDataLen);
-			//
-			// servers.get(0).sendOutput(serverDataArray);
 
 		}
 
@@ -193,7 +89,6 @@ public class MySQLMiddleware {
 	}
 
 	private static void removeConnection(int i) {
-		// TODO Auto-generated method stub
 		servers.get(i).close();
 		clients.get(i).close();
 
@@ -208,32 +103,35 @@ public class MySQLMiddleware {
 		}
 	}
 
-	@SuppressWarnings("null")
 	private static void run(int i) throws inputException {
-		// TODO Auto-generated method stub
+
 		clientDataArray.clear();
+
 		do {
 			clientDataLen = servers.get(i).getInput(clientData);
 			addToList(clientDataArray, clientData, clientDataLen);
 		} while (clientDataLen == maxSize);
-		if (clientDataArray.size() == 0) {
-			inputException e = null;
-			throw e;
-		}
+
+		// if (clientDataArray.size() == 0) {
+		// inputException e = null;
+		// throw e;
+		// }
 
 		if (traxBegin(clientDataArray)) {
 			servers.get(i).setInTrax(true);
-			System.out.println("Transaction begins.");
+			// System.out.println("Transaction begins.");
+
+			servers.get(i).setLatency(0);
+
+			servers.get(i).clearTrax();
+
 		}
 
 		if (servers.get(i).isInTrax()) {
-			System.out.print("Client: ");
-			showClientData(clientDataArray);
-		}
-
-		if (servers.get(i).isInTrax() && traxEnd(clientDataArray)) {
-			servers.get(i).setInTrax(false);
-			System.out.println("Transaction ends.");
+			// System.out.print("Client: ");
+			// showClientData(clientDataArray);
+			String s = getSQL(clientDataArray);
+			servers.get(i).addToTrax(s);
 		}
 
 		recTime = 0;
@@ -256,9 +154,17 @@ public class MySQLMiddleware {
 		}
 
 		if (servers.get(i).isInTrax()) {
-			System.out.print("Latency: ");
-			System.out.print(recTime - sendTime);
-			System.out.println(" ms");
+			// System.out.print("Latency: ");
+			// System.out.print(recTime - sendTime);
+			// System.out.println(" ms");
+			servers.get(i).addLatency(recTime - sendTime);
+		}
+
+		if (servers.get(i).isInTrax() && traxEnd(clientDataArray)) {
+			servers.get(i).setInTrax(false);
+			// System.out.println("Transaction ends.");
+
+			servers.get(i).printTrax();
 		}
 
 		// System.out.print("Server: ");
@@ -268,8 +174,23 @@ public class MySQLMiddleware {
 
 	}
 
+	private static String getSQL(ArrayList<Byte> array) {
+		String s = new String();
+
+		for (int i = 5; i < array.size(); ++i) {
+			if (array.get(i) < (byte) 32) {
+				s += '.';
+
+			} else {
+				s += (char) array.get(i).byteValue();
+			}
+
+		}
+
+		return s;
+	}
+
 	private static void addConnection(Socket socket) {
-		// TODO Auto-generated method stub
 
 		MiddleServer server = new MiddleServer();
 		server.startServer(socket);
@@ -278,41 +199,60 @@ public class MySQLMiddleware {
 		client.startClient();
 
 		serverDataLen = client.getInput(serverData);
-		showData(serverData, serverDataLen);
+
+		// System.out.println("s");
+
+		serverDataArray.clear();
+
+		// showData(serverData, serverDataLen);
 		addToList(serverDataArray, serverData, serverDataLen);
 		server.sendOutput(serverDataArray);
 
 		clientDataLen = server.getInput(clientData);
-		showData(clientData, clientDataLen);
+
+		// System.out.println("c");
+
+		clientDataArray.clear();
+
+		// showData(clientData, clientDataLen);
 		addToList(clientDataArray, clientData, clientDataLen);
 
-		System.out.println("send client info");
+		// System.out.println("send client info");
 		client.sendOutput(clientDataArray);
 
 		serverDataLen = client.getInput(serverData);
-		showData(serverData, serverDataLen);
+
+		// System.out.println("s");
+
+		// showData(serverData, serverDataLen);
 		serverDataArray.clear();
 		addToList(serverDataArray, serverData, serverDataLen);
 
-		System.out.println("get server empty packet");
+		// System.out.println("get server empty packet");
 
 		server.sendOutput(serverDataArray);
 
 		clientDataLen = server.getInput(clientData);
 		clientDataArray.clear();
 		addToList(clientDataArray, clientData, clientDataLen);
-		showData(clientData, clientDataLen);
 
-		System.out.println("111111111111111111");
+		// System.out.println("c");
+
+		// showData(clientData, clientDataLen);
+
+		// System.out.println("111111111111111111");
 
 		client.sendOutput(clientDataArray);
 
 		serverDataLen = client.getInput(serverData);
 		serverDataArray.clear();
 		addToList(serverDataArray, serverData, serverDataLen);
-		showData(serverData, serverDataLen);
 
-		System.out.println("2222222222222222222222222");
+		// System.out.println("s");
+
+		// showData(serverData, serverDataLen);
+
+		// System.out.println("2222222222222222222222222");
 
 		server.sendOutput(serverDataArray);
 
