@@ -23,7 +23,6 @@ public class MiddleClient extends MiddleSocket {
 	}
 //
 //	public boolean isConnected() {
-//		// TODO Auto-generated method stub
 //		return socket.isConnected();
 //	}
 
@@ -32,7 +31,6 @@ public class MiddleClient extends MiddleSocket {
 //		try {
 //			socket.connect(socket.getRemoteSocketAddress());
 //		} catch (IOException e) {
-//			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
 //	}
@@ -54,7 +52,6 @@ public class MiddleClient extends MiddleSocket {
 //		try {
 //			outData.write(b, 0, len);
 //		} catch (IOException e) {
-//			// TODO Auto-generated catch block
 //			System.out.println("Error in output");
 //		}
 //	}

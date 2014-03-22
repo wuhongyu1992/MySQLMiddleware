@@ -224,14 +224,19 @@ public class MySQLMiddleware {
 
 		// System.out.println("s");
 
-		// showData(serverData, serverDataLen);
+//		showData(serverData, serverDataLen);
 		serverDataArray.clear();
 		addToList(serverDataArray, serverData, serverDataLen);
 
-		// System.out.println("get server empty packet");
+		// System.out.println("get server OK packet");
 
 		server.sendOutput(serverDataArray);
 
+		if (isErrorPacket(serverDataArray)) {
+			server.printFailConnection();
+			return;
+		}
+		
 		clientDataLen = server.getInput(clientData);
 		clientDataArray.clear();
 		addToList(clientDataArray, clientData, clientDataLen);
@@ -248,17 +253,31 @@ public class MySQLMiddleware {
 		serverDataArray.clear();
 		addToList(serverDataArray, serverData, serverDataLen);
 
+
 		// System.out.println("s");
 
-		// showData(serverData, serverDataLen);
+//		showData(serverData, serverDataLen);
 
 		// System.out.println("2222222222222222222222222");
 
 		server.sendOutput(serverDataArray);
 
+		if (isErrorPacket(serverDataArray)) {
+			server.printFailConnection();
+			return;
+		}
+
 		servers.add(server);
 		clients.add(client);
 
+
+	}
+
+	private static boolean isErrorPacket(ArrayList<Byte> array) {
+		if (array.get(4).byteValue() == (byte) 255)
+			return true;
+		
+		return false;
 	}
 
 	private static boolean traxEnd(ArrayList<Byte> array) {
