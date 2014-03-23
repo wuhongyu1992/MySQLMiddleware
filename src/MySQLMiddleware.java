@@ -12,8 +12,8 @@ public class MySQLMiddleware {
 	static ArrayList<MiddleServer> servers = new ArrayList<MiddleServer>();
 	static ArrayList<MiddleClient> clients = new ArrayList<MiddleClient>();
 
-	static ArrayList<Byte> clientDataArray = new ArrayList<Byte>();
-	static ArrayList<Byte> serverDataArray = new ArrayList<Byte>();
+//	static ArrayList<Byte> clientDataArray = new ArrayList<Byte>();
+//	static ArrayList<Byte> serverDataArray = new ArrayList<Byte>();
 
 	static byte[] clientData = new byte[maxSize];
 	static int clientDataLen = 0;
@@ -70,21 +70,30 @@ public class MySQLMiddleware {
 					--i;
 					continue;
 				}
+				// System.out.println(i);
+				try {
+					if (servers.get(i).hasInput()) {
 
-				if (servers.get(i).hasInput()) {
-					try {
-						run(i);
-					} catch (inputException e) {
+						runServer(i);
+					}
+					if (clients.get(i).hasInput()) {
+						runClient(i);
+
+					}
+					if (servers.get(i).clientQuit()) {
 						removeConnection(i);
-						// System.out.println(servers.size());
 						--i;
 					}
+				} catch (inputException e) {
+					removeConnection(i);
+					// System.out.println(servers.size());
+					--i;
 				}
 			}
 
 		}
 
-		System.out.println("END");
+		System.out.println("All clients quit.");
 
 	}
 
@@ -103,21 +112,22 @@ public class MySQLMiddleware {
 		}
 	}
 
-	private static void run(int i) throws inputException {
+	private static void runServer(int i) throws inputException {
+		servers.get(i).clientDataArray.clear();
 
-		clientDataArray.clear();
-
+		// System.out.println("before read");
 		do {
 			clientDataLen = servers.get(i).getInput(clientData);
-			addToList(clientDataArray, clientData, clientDataLen);
+			addToList(servers.get(i).clientDataArray, clientData, clientDataLen);
 		} while (clientDataLen == maxSize);
 
-		// if (clientDataArray.size() == 0) {
-		// inputException e = null;
-		// throw e;
-		// }
+		if (servers.get(i).clientDataArray.size() == 0) {
+			inputException e = new inputException();
+			throw e;
+		}
+		// System.out.println("after read");
 
-		if (traxBegin(clientDataArray)) {
+		if (traxBegin(servers.get(i).clientDataArray)) {
 			servers.get(i).setInTrax(true);
 			// System.out.println("Transaction begins.");
 
@@ -130,25 +140,27 @@ public class MySQLMiddleware {
 		if (servers.get(i).isInTrax()) {
 			// System.out.print("Client: ");
 			// showClientData(clientDataArray);
-			String s = getSQL(clientDataArray);
+			String s = getSQL(servers.get(i).clientDataArray);
 			servers.get(i).addToTrax(s);
 		}
 
-		recTime = 0;
-		serverDataArray.clear();
-		clients.get(i).sendOutput(clientDataArray);
-		sendTime = System.currentTimeMillis();
+		servers.get(i).setRecTime(0);
+		clients.get(i).sendOutput(servers.get(i).clientDataArray);
+		servers.get(i).setSendTime(System.currentTimeMillis());
+	}
 
+	private static void runClient(int i) throws inputException {
+		servers.get(i).serverDataArray.clear();
 		do {
 			serverDataLen = clients.get(i).getInput(serverData);
-			if (recTime == 0)
-				recTime = System.currentTimeMillis();
+			if (servers.get(i).getRecTime() == 0)
+				servers.get(i).setRecTime(System.currentTimeMillis());
 
-			addToList(serverDataArray, serverData, serverDataLen);
+			addToList(servers.get(i).serverDataArray, serverData, serverDataLen);
 
 		} while (serverDataLen == maxSize);
 
-		if (serverDataArray.size() == 0) {
+		if (servers.get(i).serverDataArray.size() == 0) {
 			inputException e = new inputException();
 			throw e;
 		}
@@ -157,10 +169,10 @@ public class MySQLMiddleware {
 			// System.out.print("Latency: ");
 			// System.out.print(recTime - sendTime);
 			// System.out.println(" ms");
-			servers.get(i).addLatency(recTime - sendTime);
+			servers.get(i).addLatency();
 		}
 
-		if (servers.get(i).isInTrax() && traxEnd(clientDataArray)) {
+		if (servers.get(i).isInTrax() && traxEnd(servers.get(i).clientDataArray)) {
 			servers.get(i).setInTrax(false);
 			// System.out.println("Transaction ends.");
 
@@ -170,7 +182,7 @@ public class MySQLMiddleware {
 		// System.out.print("Server: ");
 		// showData(serverData, serverDataLen);
 
-		servers.get(i).sendOutput(serverDataArray);
+		servers.get(i).sendOutput(servers.get(i).serverDataArray);
 
 	}
 
@@ -202,44 +214,44 @@ public class MySQLMiddleware {
 
 		// System.out.println("s");
 
-		serverDataArray.clear();
+		server.serverDataArray.clear();
 
 		// showData(serverData, serverDataLen);
-		addToList(serverDataArray, serverData, serverDataLen);
-		server.sendOutput(serverDataArray);
+		addToList(server.serverDataArray, serverData, serverDataLen);
+		server.sendOutput(server.serverDataArray);
 
 		clientDataLen = server.getInput(clientData);
 
 		// System.out.println("c");
 
-		clientDataArray.clear();
+		server.clientDataArray.clear();
 
 		// showData(clientData, clientDataLen);
-		addToList(clientDataArray, clientData, clientDataLen);
+		addToList(server.clientDataArray, clientData, clientDataLen);
 
 		// System.out.println("send client info");
-		client.sendOutput(clientDataArray);
+		client.sendOutput(server.clientDataArray);
 
 		serverDataLen = client.getInput(serverData);
 
 		// System.out.println("s");
 
-//		showData(serverData, serverDataLen);
-		serverDataArray.clear();
-		addToList(serverDataArray, serverData, serverDataLen);
+		// showData(serverData, serverDataLen);
+		server.serverDataArray.clear();
+		addToList(server.serverDataArray, serverData, serverDataLen);
 
 		// System.out.println("get server OK packet");
 
-		server.sendOutput(serverDataArray);
+		server.sendOutput(server.serverDataArray);
 
-		if (isErrorPacket(serverDataArray)) {
+		if (isErrorPacket(server.serverDataArray)) {
 			server.printFailConnection();
 			return;
 		}
-		
+
 		clientDataLen = server.getInput(clientData);
-		clientDataArray.clear();
-		addToList(clientDataArray, clientData, clientDataLen);
+		server.clientDataArray.clear();
+		addToList(server.clientDataArray, clientData, clientDataLen);
 
 		// System.out.println("c");
 
@@ -247,22 +259,21 @@ public class MySQLMiddleware {
 
 		// System.out.println("111111111111111111");
 
-		client.sendOutput(clientDataArray);
+		client.sendOutput(server.clientDataArray);
 
 		serverDataLen = client.getInput(serverData);
-		serverDataArray.clear();
-		addToList(serverDataArray, serverData, serverDataLen);
-
+		server.serverDataArray.clear();
+		addToList(server.serverDataArray, serverData, serverDataLen);
 
 		// System.out.println("s");
 
-//		showData(serverData, serverDataLen);
+		// showData(serverData, serverDataLen);
 
 		// System.out.println("2222222222222222222222222");
 
-		server.sendOutput(serverDataArray);
+		server.sendOutput(server.serverDataArray);
 
-		if (isErrorPacket(serverDataArray)) {
+		if (isErrorPacket(server.serverDataArray)) {
 			server.printFailConnection();
 			return;
 		}
@@ -270,13 +281,12 @@ public class MySQLMiddleware {
 		servers.add(server);
 		clients.add(client);
 
-
 	}
 
 	private static boolean isErrorPacket(ArrayList<Byte> array) {
 		if (array.get(4).byteValue() == (byte) 255)
 			return true;
-		
+
 		return false;
 	}
 
@@ -353,7 +363,7 @@ public class MySQLMiddleware {
 		}
 	}
 
-	public static void showData(byte[] b, int len) {
+	private static void showData(byte[] b, int len) {
 		System.out.printf("%02x", b[0]);
 		System.out.print(" ");
 		System.out.printf("%02x", b[1]);
@@ -380,7 +390,7 @@ public class MySQLMiddleware {
 
 	}
 
-	public static void showClientData(ArrayList<Byte> array) {
+	private static void showClientData(ArrayList<Byte> array) {
 
 		switch (array.get(4)) {
 		case 1:

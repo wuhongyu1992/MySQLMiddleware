@@ -10,6 +10,10 @@ public class MiddleServer extends MiddleSocket {
 	private int clientPortNum;
 	private ArrayList<String> trax;
 	private long latency;
+	private long sendTime;
+	private long recTime;
+	public ArrayList<Byte> clientDataArray;
+	public ArrayList<Byte> serverDataArray;
 
 	public MiddleServer() {
 		super();
@@ -17,6 +21,11 @@ public class MiddleServer extends MiddleSocket {
 		inTrax = false;
 		trax = new ArrayList<String>();
 		latency = 0;
+		setSendTime(0);
+		setRecTime(0);
+		clientDataArray = new ArrayList<Byte>();
+		serverDataArray = new ArrayList<Byte>();
+		
 	}
 
 	public void startServer(Socket inSock) {
@@ -50,8 +59,8 @@ public class MiddleServer extends MiddleSocket {
 		System.out.println("client(" + clientPortNum + ") fails connection.");
 	}
 
-	public void addLatency(long t) {
-		latency += t;
+	public void addLatency() {
+		latency += (recTime - sendTime);
 	}
 
 	public void addToTrax(String s) {
@@ -65,15 +74,18 @@ public class MiddleServer extends MiddleSocket {
 	public void setInTrax(boolean inTrax) {
 		this.inTrax = inTrax;
 	}
-
-	public boolean hasInput() {
-		try {
-			return (inData.available() != 0);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return false;
-	}
+//
+//	public boolean hasInput() {
+//		try {
+//			int i = inData.available();
+//			System.out.println("available" + i);
+//			return (i != 0);
+////			return (inData.available() != 0);
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//		return false;
+//	}
 
 	public void clearTrax() {
 		trax.clear();
@@ -82,6 +94,29 @@ public class MiddleServer extends MiddleSocket {
 	public void setLatency(long latency) {
 		this.latency = latency;
 	}
+
+	public void setRecTime(long recTime) {
+		this.recTime = recTime;
+	}
+
+	public void setSendTime(long sendTime) {
+		this.sendTime = sendTime;
+	}
+
+	public long getRecTime() {
+		return recTime;
+	}
+
+	public boolean clientQuit() {
+		if (clientDataArray.get(4).byteValue() == (byte) 1)
+			return true;
+		
+		return false;
+	}
+
+//	public void addToClientData(byte[] clientData, int clientDataLen) {
+//		
+//	}
 
 	//
 	// public void sendOutput(byte[] b, int len) {

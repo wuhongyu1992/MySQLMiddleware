@@ -20,7 +20,6 @@ public class MiddleSocket {
 	}
 
 	public MiddleSocket() {
-		// TODO Auto-generated constructor stub
 		socket = null;
 		inData = null;
 		outData = null;
@@ -48,7 +47,6 @@ public class MiddleSocket {
 		try {
 			outData.write(b, 0, len);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			System.out.println("Error in output");
 		}
 	}
@@ -67,18 +65,28 @@ public class MiddleSocket {
 	}
 
 	public boolean isConnected() {
-		// TODO Auto-generated method stub
 		return socket.isConnected();
 	}
 
 	public void close() {
-		// TODO Auto-generated method stub
 		try {
 			socket.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+
+	public boolean hasInput() {
+		try {
+			int i = inData.available();
+//			System.out.println("available" + i);
+			return (i != 0);
+//			return (inData.available() != 0);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 
 }
