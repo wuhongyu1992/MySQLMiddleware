@@ -21,7 +21,7 @@ public class MySQLMiddleware {
 	static byte[] serverData = new byte[maxSize];
 	static int serverDataLen = 0;
 
-	static long sendTime, recTime;
+//	static long sendTime, recTime;
 
 	public static void main(String[] args) {
 
