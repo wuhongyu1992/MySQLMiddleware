@@ -12,11 +12,13 @@ public class MiddlewareUnit extends Thread {
 	static byte[] serverData;
 	static int serverDataLen;
 
-	MiddlewareUnit(String ipAddr, int portNum, SharedData s) {
-		server = new MiddleServer();
-		client = new MiddleClient(ipAddr, portNum);
+	MiddlewareUnit(SharedData s) {
 		sharedData = s;
 		maxSize = sharedData.getMaxSize();
+		
+		server = new MiddleServer();
+		client = new MiddleClient(sharedData.getServerIpAddr(), sharedData.getServerPortNum());
+
 		clientData = new byte[maxSize];
 		clientDataLen = 0;
 
@@ -27,7 +29,7 @@ public class MiddlewareUnit extends Thread {
 
 	public void run() {
 
-		while (true) {
+		while (!sharedData.isEndOfProgram()) {
 			if (!server.isConnected()) {
 				break;
 			}
@@ -127,7 +129,7 @@ public class MiddlewareUnit extends Thread {
 		} while (clientDataLen == maxSize);
 	}
 
-	public void setUp(Socket socket) {
+	public boolean setUp(Socket socket) {
 		server.startServer(socket);
 		client.startClient();
 
@@ -167,7 +169,7 @@ public class MiddlewareUnit extends Thread {
 
 		if (isErrorPacket(server.serverDataArray)) {
 			server.printFailConnection();
-			return;
+			return false;
 		}
 
 		clientDataLen = server.getInput(clientData);
@@ -196,8 +198,12 @@ public class MiddlewareUnit extends Thread {
 
 		if (isErrorPacket(server.serverDataArray)) {
 			server.printFailConnection();
-			return;
+			return false;
 		}
+		
+		sharedData.addClient();
+		
+		return true;
 	}
 
 	private static void addToList(ArrayList<Byte> dataArray, byte[] data,

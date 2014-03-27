@@ -25,6 +25,11 @@ public class MySQLMiddleware {
 
 	public static void main(String[] args) {
 
+		SharedData sharedData = new SharedData();
+		
+		MiddleServerSocket middleServerSock = new MiddleServerSocket(sharedData);
+		
+
 		ServerSocket serverSock = null;
 		try {
 			serverSock = new ServerSocket(3306);
