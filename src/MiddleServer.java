@@ -198,6 +198,10 @@ public class MiddleServer extends MiddleSocket {
 		return false;
 	}
 
+	public int getClientPort() {
+		return socket.getPort();
+	}
+
 	//
 	// public void sendOutput(byte[] b, int len) {
 	// try {

@@ -5,11 +5,15 @@ public class SharedData {
 	private int serverPortNum;
 	private int middlePortNum;
 	private boolean endOfProgram;
+	private boolean outputToFile;
+	private String filePathName;
 
 	SharedData() {
 		maxSize = 1024;
 		numClient = 0;
-		setEndOfProgram(false);
+		endOfProgram = false;
+		outputToFile = false;
+		filePathName = null;
 	}
 
 	public int getMaxSize() {
@@ -62,6 +66,22 @@ public class SharedData {
 
 	public void setEndOfProgram(boolean endOfProgram) {
 		this.endOfProgram = endOfProgram;
+	}
+
+	public boolean isOutputToFile() {
+		return outputToFile;
+	}
+
+	public void setOutputToFile(boolean outputToFile) {
+		this.outputToFile = outputToFile;
+	}
+
+	public String getFilePathName() {
+		return filePathName;
+	}
+
+	public void setFilePathName(String filePathName) {
+		this.filePathName = filePathName;
 	}
 
 }

@@ -4,6 +4,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class MySQLMiddleware {
 
@@ -12,8 +13,8 @@ public class MySQLMiddleware {
 	static ArrayList<MiddleServer> servers = new ArrayList<MiddleServer>();
 	static ArrayList<MiddleClient> clients = new ArrayList<MiddleClient>();
 
-//	static ArrayList<Byte> clientDataArray = new ArrayList<Byte>();
-//	static ArrayList<Byte> serverDataArray = new ArrayList<Byte>();
+	// static ArrayList<Byte> clientDataArray = new ArrayList<Byte>();
+	// static ArrayList<Byte> serverDataArray = new ArrayList<Byte>();
 
 	static byte[] clientData = new byte[maxSize];
 	static int clientDataLen = 0;
@@ -21,14 +22,42 @@ public class MySQLMiddleware {
 	static byte[] serverData = new byte[maxSize];
 	static int serverDataLen = 0;
 
-//	static long sendTime, recTime;
+	// static long sendTime, recTime;
 
 	public static void main(String[] args) {
 
+		
 		SharedData sharedData = new SharedData();
-		
+
+		sharedData.setMaxSize(1024);
+		sharedData.setServerIpAddr("127.0.0.1");
+		sharedData.setServerPortNum(3320);
+		sharedData.setMiddlePortNum(3306);
+		sharedData.setFilePathName(".");
+		sharedData.setOutputToFile(true);
+
 		MiddleServerSocket middleServerSock = new MiddleServerSocket(sharedData);
-		
+		middleServerSock.start();
+
+		Scanner scanner = new Scanner(System.in);
+		String s = "";
+		while (!sharedData.isEndOfProgram()) {
+			s = scanner.nextLine();
+			if (s.contentEquals("q")) {
+				sharedData.setEndOfProgram(true);
+			}
+			if (s.contentEquals("o")) {
+				sharedData.setOutputToFile(true);
+			}
+			if (s.contentEquals("c")) {
+				sharedData.setOutputToFile(false);
+			}
+		}
+
+		System.out.println("main end");
+
+		if (1 == 1)
+			return;
 
 		ServerSocket serverSock = null;
 		try {
@@ -177,7 +206,8 @@ public class MySQLMiddleware {
 			servers.get(i).addLatency();
 		}
 
-		if (servers.get(i).isInTrax() && traxEnd(servers.get(i).clientDataArray)) {
+		if (servers.get(i).isInTrax()
+				&& traxEnd(servers.get(i).clientDataArray)) {
 			servers.get(i).setInTrax(false);
 			// System.out.println("Transaction ends.");
 

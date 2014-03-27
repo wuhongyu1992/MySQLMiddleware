@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 public class MiddleServerSocket extends Thread {
 	private SharedData sharedData;
@@ -10,6 +11,7 @@ public class MiddleServerSocket extends Thread {
 		sharedData = s;
 		try {
 			serverSock = new ServerSocket(s.getMiddlePortNum());
+			serverSock.setSoTimeout(10);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -20,14 +22,20 @@ public class MiddleServerSocket extends Thread {
 			Socket socket = null;
 			try {
 				socket = serverSock.accept();
-			} catch (IOException e) {
-				e.printStackTrace();
+			} catch (SocketTimeoutException e1) {
+				
+			} catch (IOException e2) {
+				e2.printStackTrace();
 			}
 
-			MiddlewareUnit newUnit = new MiddlewareUnit(sharedData);
-			if (newUnit.setUp(socket)) {
-				newUnit.start();
+			if (socket != null) {
+				MiddlewareUnit newUnit = new MiddlewareUnit(sharedData);
+				if (newUnit.setUp(socket)) {
+					newUnit.start();
+				}
 			}
 		}
+
+		System.out.println("server socket end");
 	}
 }

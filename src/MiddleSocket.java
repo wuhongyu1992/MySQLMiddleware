@@ -47,6 +47,7 @@ public class MiddleSocket {
 		try {
 			outData.write(b, 0, len);
 		} catch (IOException e) {
+			e.printStackTrace();
 			System.out.println("Error in output");
 		}
 	}
@@ -58,6 +59,7 @@ public class MiddleSocket {
 			len = inData.read(byteArray);
 
 		} catch (IOException ioe) {
+			ioe.printStackTrace();
 			System.out.println("Error in receiving data stream");
 		}
 		// System.out.println(len);
