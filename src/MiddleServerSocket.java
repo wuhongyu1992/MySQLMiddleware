@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -6,6 +7,7 @@ import java.net.SocketTimeoutException;
 public class MiddleServerSocket extends Thread {
 	private SharedData sharedData;
 	private ServerSocket serverSock;
+	private File dir;
 
 	MiddleServerSocket(SharedData s) {
 		sharedData = s;
@@ -14,6 +16,10 @@ public class MiddleServerSocket extends Thread {
 			serverSock.setSoTimeout(10);
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+		dir = new File(sharedData.getFilePathName() + "/Transactions");
+		if (!dir.exists()) {
+			dir.mkdirs();
 		}
 	}
 

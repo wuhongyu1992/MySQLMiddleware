@@ -103,7 +103,7 @@ public class MiddlewareUnit extends Thread {
 			recTime = 0;
 			serverDataArray.clear();
 
-			// showClientData(server.clientDataArray);
+			if (outputFlag) showClientData(clientDataArray);
 			client.sendOutput(clientDataArray);
 			sendTime = System.currentTimeMillis();
 
@@ -188,7 +188,7 @@ public class MiddlewareUnit extends Thread {
 		serverDataLen = client.getInput(serverData);
 		if (outputFlag) {
 			System.out.println("s");
-			server.serverDataArray.clear();
+			serverDataArray.clear();
 		}
 		if (outputFlag)
 			showData(serverData, serverDataLen);
@@ -222,39 +222,39 @@ public class MiddlewareUnit extends Thread {
 		server.sendOutput(serverDataArray);
 
 		if (isErrorPacket(serverDataArray)) {
-			server.printFailConnection();
+			printFailConnection();
 			return false;
 		}
-
-		clientDataLen = server.getInput(clientData);
-		clientDataArray.clear();
-		addToList(clientDataArray, clientData, clientDataLen);
-
-		if (outputFlag) {
-			System.out.println("c");
-			showData(clientData, clientDataLen);
-			// System.out.println("111111111111111111");
-		}
-
-		client.sendOutput(clientDataArray);
-
-		serverDataLen = client.getInput(serverData);
-		serverDataArray.clear();
-		addToList(serverDataArray, serverData, serverDataLen);
-
-		if (outputFlag) {
-			System.out.println("s");
-			showData(serverData, serverDataLen);
-		}
-
-		// System.out.println("2222222222222222222222222");
-
-		server.sendOutput(serverDataArray);
-
-		if (isErrorPacket(serverDataArray)) {
-			server.printFailConnection();
-			return false;
-		}
+//
+//		clientDataLen = server.getInput(clientData);
+//		clientDataArray.clear();
+//		addToList(clientDataArray, clientData, clientDataLen);
+//
+//		if (outputFlag) {
+//			System.out.println("c");
+//			showData(clientData, clientDataLen);
+//			// System.out.println("111111111111111111");
+//		}
+//
+//		client.sendOutput(clientDataArray);
+//
+//		serverDataLen = client.getInput(serverData);
+//		serverDataArray.clear();
+//		addToList(serverDataArray, serverData, serverDataLen);
+//
+//		if (outputFlag) {
+//			System.out.println("s");
+//			showData(serverData, serverDataLen);
+//		}
+//
+//		// System.out.println("2222222222222222222222222");
+//
+//		server.sendOutput(serverDataArray);
+//
+//		if (isErrorPacket(serverDataArray)) {
+//			printFailConnection();
+//			return false;
+//		}
 
 		sharedData.addClient();
 		clientPortNum = server.getClientPort();
@@ -319,7 +319,7 @@ public class MiddlewareUnit extends Thread {
 	}
 
 	private void setOutputFileStream() {
-		file = new File(sharedData.getFilePathName() + "/C" + clientPortNum
+		file = new File(sharedData.getFilePathName() + "/Transactions/C" + clientPortNum
 				+ ".txt");
 		try {
 			printStream = new PrintStream(file);
@@ -405,5 +405,52 @@ public class MiddlewareUnit extends Thread {
 		}
 		return false;
 	}
+	
+	private void printFailConnection() {
+		System.out.println("client(" + clientPortNum + ") fails connection.");
+	}
+
+	private static void showClientData(ArrayList<Byte> array) {
+
+		switch (array.get(4)) {
+		case 1:
+			System.out.print("client quit");
+			break;
+		case 2:
+			System.out.print("select database: ");
+			break;
+		case 3:
+			System.out.print("");
+			break;
+		case 4:
+			System.out.print("list field: ");
+			break;
+		case 5:
+			System.out.print("create database: ");
+			break;
+		case 6:
+			System.out.print("drop database: ");
+			break;
+		default:
+			break;
+
+		}
+
+		for (int i = 5; i < array.size(); ++i) {
+			if (array.get(i) < (byte) 32) {
+				// System.out.print(new String ("'"));
+				// System.out.print((byte) b[i]);
+				// System.out.print(new String ("'"));
+				System.out.print(".");
+
+			} else if (array.get(i) >= (byte) 32 && array.get(i) < (byte) 127)
+				System.out.print((char) array.get(i).byteValue());
+			else
+				System.out.printf(" %02x ", array.get(i));
+		}
+		System.out.println();
+
+	}
+
 
 }
