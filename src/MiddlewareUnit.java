@@ -14,7 +14,6 @@ public class MiddlewareUnit extends Thread {
 	private int maxSize;
 	private int clientPortNum;
 
-
 	private byte[] clientData;
 	private int clientDataLen;
 
@@ -87,7 +86,7 @@ public class MiddlewareUnit extends Thread {
 				break;
 			}
 
-			if (!inTrax && traxBegin()) {
+			if (sharedData.isOutputToFile() && !inTrax && traxBegin()) {
 				inTrax = true;
 				// System.out.println("Transaction begins.");
 				latency = 0;
@@ -103,7 +102,8 @@ public class MiddlewareUnit extends Thread {
 			recTime = 0;
 			serverDataArray.clear();
 
-			if (outputFlag) showClientData(clientDataArray);
+			if (outputFlag)
+				showClientData(clientDataArray);
 			client.sendOutput(clientDataArray);
 			sendTime = System.currentTimeMillis();
 
@@ -128,12 +128,11 @@ public class MiddlewareUnit extends Thread {
 			if (inTrax && traxEnd()) {
 				inTrax = false;
 				// System.out.println("Transaction ends.");
-				if (sharedData.isOutputToFile()) {
-					if (file == null){
-						setOutputFileStream();
-					}
-					printTrax();
+				if (file == null) {
+					setOutputFileStream();
 				}
+				printTrax();
+
 			}
 
 			// System.out.print("Server: ");
@@ -148,7 +147,7 @@ public class MiddlewareUnit extends Thread {
 		}
 		server.close();
 		client.close();
-		
+
 		if (printStream != null) {
 			printStream.close();
 		}
@@ -225,36 +224,36 @@ public class MiddlewareUnit extends Thread {
 			printFailConnection();
 			return false;
 		}
-//
-//		clientDataLen = server.getInput(clientData);
-//		clientDataArray.clear();
-//		addToList(clientDataArray, clientData, clientDataLen);
-//
-//		if (outputFlag) {
-//			System.out.println("c");
-//			showData(clientData, clientDataLen);
-//			// System.out.println("111111111111111111");
-//		}
-//
-//		client.sendOutput(clientDataArray);
-//
-//		serverDataLen = client.getInput(serverData);
-//		serverDataArray.clear();
-//		addToList(serverDataArray, serverData, serverDataLen);
-//
-//		if (outputFlag) {
-//			System.out.println("s");
-//			showData(serverData, serverDataLen);
-//		}
-//
-//		// System.out.println("2222222222222222222222222");
-//
-//		server.sendOutput(serverDataArray);
-//
-//		if (isErrorPacket(serverDataArray)) {
-//			printFailConnection();
-//			return false;
-//		}
+		//
+		// clientDataLen = server.getInput(clientData);
+		// clientDataArray.clear();
+		// addToList(clientDataArray, clientData, clientDataLen);
+		//
+		// if (outputFlag) {
+		// System.out.println("c");
+		// showData(clientData, clientDataLen);
+		// // System.out.println("111111111111111111");
+		// }
+		//
+		// client.sendOutput(clientDataArray);
+		//
+		// serverDataLen = client.getInput(serverData);
+		// serverDataArray.clear();
+		// addToList(serverDataArray, serverData, serverDataLen);
+		//
+		// if (outputFlag) {
+		// System.out.println("s");
+		// showData(serverData, serverDataLen);
+		// }
+		//
+		// // System.out.println("2222222222222222222222222");
+		//
+		// server.sendOutput(serverDataArray);
+		//
+		// if (isErrorPacket(serverDataArray)) {
+		// printFailConnection();
+		// return false;
+		// }
 
 		sharedData.addClient();
 		clientPortNum = server.getClientPort();
@@ -320,8 +319,8 @@ public class MiddlewareUnit extends Thread {
 	}
 
 	private void setOutputFileStream() {
-		file = new File(sharedData.getFilePathName() + "/Transactions/C" + clientPortNum
-				+ ".txt");
+		file = new File(sharedData.getFilePathName() + "/Transactions/C"
+				+ clientPortNum + ".txt");
 		try {
 			printStream = new PrintStream(file);
 		} catch (FileNotFoundException e) {
@@ -345,7 +344,7 @@ public class MiddlewareUnit extends Thread {
 		String s = new String(temp);
 		s = s.toLowerCase();
 		s = s.replaceAll("\\s", "");
-//		System.out.println(s);
+		// System.out.println(s);
 		if (s.contentEquals("begin") || s.contentEquals("starttransaction"))
 			return true;
 		else
@@ -369,7 +368,7 @@ public class MiddlewareUnit extends Thread {
 		else
 			return false;
 	}
-	
+
 	private void printFailConnection() {
 		System.out.println("client(" + clientPortNum + ") fails connection.");
 	}
@@ -415,6 +414,5 @@ public class MiddlewareUnit extends Thread {
 		System.out.println();
 
 	}
-
 
 }
