@@ -337,6 +337,8 @@ public class MiddlewareUnit extends Thread {
 	}
 
 	private boolean traxBegin() {
+		if (clientDataArray.size() < 6)
+			return false;
 		byte[] temp = new byte[clientDataArray.size() - 5];
 		for (int i = 5; i < clientDataArray.size(); ++i) {
 			temp[i - 5] = clientDataArray.get(i).byteValue();
@@ -356,6 +358,8 @@ public class MiddlewareUnit extends Thread {
 	// }
 
 	private boolean traxEnd() {
+		if (clientDataArray.size() < 6)
+			return false;
 		byte[] temp = new byte[clientDataArray.size() - 5];
 		for (int i = 5; i < clientDataArray.size(); ++i) {
 			temp[i - 5] = clientDataArray.get(i).byteValue();
