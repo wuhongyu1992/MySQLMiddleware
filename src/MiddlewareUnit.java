@@ -346,7 +346,7 @@ public class MiddlewareUnit extends Thread {
 		s = s.toLowerCase();
 		s = s.replaceAll("\\s", "");
 //		System.out.println(s);
-		if (s.contentEquals("begin") || s.contains("starttransaction"))
+		if (s.contentEquals("begin") || s.contentEquals("starttransaction"))
 			return true;
 		else
 			return false;
@@ -364,7 +364,7 @@ public class MiddlewareUnit extends Thread {
 		String s = new String(temp);
 		s = s.toLowerCase();
 		s = s.replaceAll("\\s", "");
-		if (s.contentEquals("commit") || s.contains("rollback"))
+		if (s.contentEquals("commit") || s.contentEquals("rollback"))
 			return true;
 		else
 			return false;
