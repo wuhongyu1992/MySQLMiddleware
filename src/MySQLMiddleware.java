@@ -17,6 +17,9 @@ public class MySQLMiddleware {
 
 		Scanner scanner = new Scanner(System.in);
 		String s = "";
+		
+		System.out.println("Start");
+		
 		while (!sharedData.isEndOfProgram()) {
 			s = scanner.nextLine();
 			if (s.contentEquals("q")) {

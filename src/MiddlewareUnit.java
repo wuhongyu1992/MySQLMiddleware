@@ -258,6 +258,7 @@ public class MiddlewareUnit extends Thread {
 
 		sharedData.addClient();
 		clientPortNum = server.getClientPort();
+		System.out.println("Client(" + clientPortNum + ") login");
 
 		return true;
 	}
