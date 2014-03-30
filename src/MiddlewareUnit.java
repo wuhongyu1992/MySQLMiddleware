@@ -87,7 +87,7 @@ public class MiddlewareUnit extends Thread {
 				break;
 			}
 
-			if (traxBegin()) {
+			if (!inTrax && traxBegin()) {
 				inTrax = true;
 				// System.out.println("Transaction begins.");
 				latency = 0;
@@ -342,21 +342,14 @@ public class MiddlewareUnit extends Thread {
 		for (int i = 5; i < clientDataArray.size(); ++i) {
 			temp[i - 5] = clientDataArray.get(i).byteValue();
 		}
-		if (clientDataArray.size() == 10) {
-			if (temp[0] != 'b' && temp[0] != 'B')
-				return false;
-			if (temp[1] != 'e' && temp[0] != 'E')
-				return false;
-			if (temp[2] != 'g' && temp[0] != 'G')
-				return false;
-			if (temp[3] != 'i' && temp[0] != 'I')
-				return false;
-			if (temp[4] != 'n' && temp[0] != 'N')
-				return false;
-
+		String s = new String(temp);
+		s = s.toLowerCase();
+		s = s.replaceAll("\\s", "");
+//		System.out.println(s);
+		if (s.contentEquals("begin") || s.contains("starttransaction"))
 			return true;
-		}
-		return false;
+		else
+			return false;
 	}
 
 	// public void addToClientData(byte[] clientData, int clientDataLen) {
@@ -368,43 +361,13 @@ public class MiddlewareUnit extends Thread {
 		for (int i = 5; i < clientDataArray.size(); ++i) {
 			temp[i - 5] = clientDataArray.get(i).byteValue();
 		}
-		if (clientDataArray.size() == 11) {
-			if (temp[0] != 'c' && temp[0] != 'C')
-				return false;
-			if (temp[1] != 'o' && temp[0] != 'O')
-				return false;
-			if (temp[2] != 'm' && temp[0] != 'M')
-				return false;
-			if (temp[3] != 'm' && temp[0] != 'M')
-				return false;
-			if (temp[4] != 'i' && temp[0] != 'I')
-				return false;
-			if (temp[5] != 't' && temp[0] != 'T')
-				return false;
-
+		String s = new String(temp);
+		s = s.toLowerCase();
+		s = s.replaceAll("\\s", "");
+		if (s.contentEquals("commit") || s.contains("rollback"))
 			return true;
-		}
-		if (clientDataArray.size() == 13) {
-			if (temp[0] != 'r' && temp[0] != 'R')
-				return false;
-			if (temp[1] != 'o' && temp[0] != 'O')
-				return false;
-			if (temp[2] != 'l' && temp[0] != 'L')
-				return false;
-			if (temp[3] != 'l' && temp[0] != 'L')
-				return false;
-			if (temp[4] != 'b' && temp[0] != 'B')
-				return false;
-			if (temp[5] != 'a' && temp[0] != 'A')
-				return false;
-			if (temp[6] != 'c' && temp[0] != 'C')
-				return false;
-			if (temp[7] != 'k' && temp[0] != 'K')
-				return false;
-
-			return true;
-		}
-		return false;
+		else
+			return false;
 	}
 	
 	private void printFailConnection() {
