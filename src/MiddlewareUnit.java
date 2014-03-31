@@ -25,6 +25,7 @@ public class MiddlewareUnit extends Thread {
 
 	private ArrayList<String> trax;
 	private boolean inTrax;
+	private boolean autoCommit;
 
 	private int latency;
 	private long sendTime;
@@ -52,6 +53,7 @@ public class MiddlewareUnit extends Thread {
 
 		trax = new ArrayList<String>();
 		inTrax = false;
+		autoCommit = true;
 
 		latency = 0;
 		sendTime = 0;
@@ -86,11 +88,11 @@ public class MiddlewareUnit extends Thread {
 				break;
 			}
 
+			checkAutoCommit();
 			if (sharedData.isOutputToFile() && !inTrax && traxBegin()) {
 				inTrax = true;
 				// System.out.println("Transaction begins.");
-				latency = 0;
-				trax.clear();
+				
 			}
 
 			if (inTrax) {
@@ -104,6 +106,7 @@ public class MiddlewareUnit extends Thread {
 
 			if (outputFlag)
 				showClientData(clientDataArray);
+
 			client.sendOutput(clientDataArray);
 			sendTime = System.currentTimeMillis();
 
@@ -132,6 +135,8 @@ public class MiddlewareUnit extends Thread {
 					setOutputFileStream();
 				}
 				printTrax();
+				latency = 0;
+				trax.clear();
 
 			}
 
@@ -153,6 +158,23 @@ public class MiddlewareUnit extends Thread {
 		}
 
 		System.out.println("Client(" + clientPortNum + ") quit");
+
+	}
+
+	private void checkAutoCommit() {
+		if (clientDataArray.size() < 6)
+			return;
+		byte[] temp = new byte[clientDataArray.size() - 5];
+		for (int i = 5; i < clientDataArray.size(); ++i) {
+			temp[i - 5] = clientDataArray.get(i).byteValue();
+		}
+		String s = new String(temp);
+		s = s.toLowerCase();
+		s = s.replaceAll("\\s", "");
+		if (s.contentEquals("setautocommit=0"))
+			autoCommit = false;
+		if (s.contentEquals("setautocommit=1"))
+			autoCommit = true;
 
 	}
 
@@ -337,6 +359,8 @@ public class MiddlewareUnit extends Thread {
 	}
 
 	private boolean traxBegin() {
+		if (!autoCommit)
+			return true;
 		if (clientDataArray.size() < 6)
 			return false;
 		byte[] temp = new byte[clientDataArray.size() - 5];
