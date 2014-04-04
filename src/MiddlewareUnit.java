@@ -92,7 +92,7 @@ public class MiddlewareUnit extends Thread {
 			if (sharedData.isOutputToFile() && !inTrax && traxBegin()) {
 				inTrax = true;
 				// System.out.println("Transaction begins.");
-				
+
 			}
 
 			if (inTrax) {
@@ -178,7 +178,7 @@ public class MiddlewareUnit extends Thread {
 
 	}
 
-	synchronized private void getServerData() {
+	private void getServerData() {
 		do {
 			serverDataLen = client.getInput(serverData);
 			if (recTime == 0)
@@ -192,7 +192,7 @@ public class MiddlewareUnit extends Thread {
 
 	}
 
-	synchronized private void getClientData() {
+	private void getClientData() {
 		do {
 			clientDataLen = server.getInput(clientData);
 			addToList(clientDataArray, clientData, clientDataLen);
@@ -353,6 +353,7 @@ public class MiddlewareUnit extends Thread {
 	private void printTrax() {
 		for (int i = 0; i < trax.size(); ++i) {
 			printStream.println(trax.get(i));
+			// System.out.println(trax.get(i));
 		}
 		printStream.println("# Latency: " + latency + " ms\n");
 
