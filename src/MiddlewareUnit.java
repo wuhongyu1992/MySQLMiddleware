@@ -1,8 +1,12 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.PrintStream;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 public class MiddlewareUnit extends Thread {
 
@@ -24,15 +28,23 @@ public class MiddlewareUnit extends Thread {
 	private ArrayList<Byte> serverDataArray;
 
 	private ArrayList<String> trax;
+	private int traxNum;
+	private long traxStart;
+	private long traxEnd;
 	private boolean inTrax;
 	private boolean autoCommit;
 
-	private int latency;
+//	private int latency;
 	private long sendTime;
 	private long recTime;
+	private Calendar cal;
+	private Date date;
 
 	private File file;
-	private PrintStream printStream;
+	private FileOutputStream fileOutputStream;
+	private PrintWriter printWriter;
+
+	private int clientID;
 
 	MiddlewareUnit(SharedData s) {
 		sharedData = s;
@@ -52,15 +64,18 @@ public class MiddlewareUnit extends Thread {
 		serverDataArray = new ArrayList<Byte>();
 
 		trax = new ArrayList<String>();
+		traxNum = 0;
 		inTrax = false;
 		autoCommit = true;
 
-		latency = 0;
 		sendTime = 0;
 		recTime = 0;
+		cal = new GregorianCalendar();
+		date = new Date();
 
 		file = null;
-		printStream = null;
+		fileOutputStream = null;
+		printWriter = null;
 	}
 
 	public void run() {
@@ -75,14 +90,6 @@ public class MiddlewareUnit extends Thread {
 
 			// System.out.println("before read");
 			getClientData();
-			// do {
-			// clientDataLen = server.getInput(clientData);
-			// addToList(server.clientDataArray, clientData, clientDataLen);
-			// } while (clientDataLen == maxSize);
-
-			// if (server.clientDataArray.size() == 0) {
-			// }
-			// System.out.println("after read");
 
 			if (sharedData.isEndOfProgram()) {
 				break;
@@ -91,14 +98,9 @@ public class MiddlewareUnit extends Thread {
 			checkAutoCommit();
 			if (sharedData.isOutputToFile() && !inTrax && traxBegin()) {
 				inTrax = true;
+				traxStart = System.currentTimeMillis();
 				// System.out.println("Transaction begins.");
 
-			}
-
-			if (inTrax) {
-				// System.out.print("Client: ");
-				// showClientData(clientDataArray);
-				addSQLToTrax();
 			}
 
 			recTime = 0;
@@ -111,33 +113,26 @@ public class MiddlewareUnit extends Thread {
 			sendTime = System.currentTimeMillis();
 
 			getServerData();
-			// do {
-			// serverDataLen = client.getInput(serverData);
-			// if (server.getRecTime() == 0)
-			// server.setRecTime(System.currentTimeMillis());
-			//
-			// addToList(server.serverDataArray, serverData, serverDataLen);
-			//
-			// } while (serverDataLen == maxSize);
 
 			if (serverDataArray.size() == 0) {
 				break;
 			}
 
+			// if (inTrax) {
+			// latency += recTime - sendTime;
+			// }
 			if (inTrax) {
-				latency += recTime - sendTime;
-			}
+				// System.out.print("Client: ");
+				// showClientData(clientDataArray);
+				addSQLToTrax();
+				if (traxEnd()) {
+					inTrax = false;
+					traxEnd = System.currentTimeMillis();
+					// System.out.println("Transaction ends.");
 
-			if (inTrax && traxEnd()) {
-				inTrax = false;
-				// System.out.println("Transaction ends.");
-				if (file == null) {
-					setOutputFileStream();
+					printTrax();
+					trax.clear();
 				}
-				printTrax();
-				latency = 0;
-				trax.clear();
-
 			}
 
 			// System.out.print("Server: ");
@@ -153,10 +148,12 @@ public class MiddlewareUnit extends Thread {
 		server.close();
 		client.close();
 
-		if (printStream != null) {
-			printStream.close();
+		if (printWriter != null) {
+			printWriter.close();
 		}
 
+		if (printWriter != null)
+			printWriter.flush();
 		System.out.println("Client(" + clientPortNum + ") quit");
 
 	}
@@ -246,39 +243,15 @@ public class MiddlewareUnit extends Thread {
 			printFailConnection();
 			return false;
 		}
-		//
-		// clientDataLen = server.getInput(clientData);
-		// clientDataArray.clear();
-		// addToList(clientDataArray, clientData, clientDataLen);
-		//
-		// if (outputFlag) {
-		// System.out.println("c");
-		// showData(clientData, clientDataLen);
-		// // System.out.println("111111111111111111");
-		// }
-		//
-		// client.sendOutput(clientDataArray);
-		//
-		// serverDataLen = client.getInput(serverData);
-		// serverDataArray.clear();
-		// addToList(serverDataArray, serverData, serverDataLen);
-		//
-		// if (outputFlag) {
-		// System.out.println("s");
-		// showData(serverData, serverDataLen);
-		// }
-		//
-		// // System.out.println("2222222222222222222222222");
-		//
-		// server.sendOutput(serverDataArray);
-		//
-		// if (isErrorPacket(serverDataArray)) {
-		// printFailConnection();
-		// return false;
-		// }
 
 		sharedData.addClient();
 		clientPortNum = server.getClientPort();
+		clientID = sharedData.getNumClient();
+		try {
+			setFileOutputStream();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 		System.out.println("Client(" + clientPortNum + ") login");
 
 		return true;
@@ -326,7 +299,15 @@ public class MiddlewareUnit extends Thread {
 	}
 
 	private void addSQLToTrax() {
-		String s = new String();
+		String s = "";
+		s += "Statement ID: ";
+		s += trax.size() / 2 + 1;
+		s += "   Start: ";
+		s += getTimeString(sendTime);
+		s += "   End: ";
+		s += getTimeString(recTime);
+		trax.add(s);
+		s = "";
 
 		for (int i = 5; i < clientDataArray.size(); ++i) {
 			if (clientDataArray.get(i) < (byte) 32) {
@@ -340,22 +321,50 @@ public class MiddlewareUnit extends Thread {
 		trax.add(s);
 	}
 
-	private void setOutputFileStream() {
+	private String getTimeString(long t) {
+		date.setTime(t);
+		cal.setTime(date);
+		String s = "";
+
+		s += cal.get(Calendar.YEAR);
+		s += '-';
+		s += cal.get(Calendar.MONTH) + 1;
+		s += '-';
+		s += cal.get(Calendar.DATE);
+		s += ' ';
+		s += cal.get(Calendar.HOUR);
+		s += ':';
+		s += cal.get(Calendar.MINUTE);
+		s += ':';
+		s += cal.get(Calendar.SECOND);
+		s += ':';
+		s += cal.get(Calendar.MILLISECOND);
+
+		return s;
+	}
+
+	private void setFileOutputStream() throws FileNotFoundException {
 		file = new File(sharedData.getFilePathName() + "/Transactions/C"
 				+ clientPortNum + ".txt");
 		try {
-			printStream = new PrintStream(file);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			fileOutputStream = new FileOutputStream(file);
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
 		}
+		printWriter = new PrintWriter(fileOutputStream, false);
 	}
 
 	private void printTrax() {
+		++traxNum;
+		printWriter.println("Client ID: " + clientID + "   Transaction ID: "
+				+ traxNum + "   Start: " + getTimeString(traxStart)
+				+ "   End: " + getTimeString(traxEnd) + "   Latency: "
+				+ (traxEnd - traxStart) + " ms");
 		for (int i = 0; i < trax.size(); ++i) {
-			printStream.println(trax.get(i));
+			printWriter.println(trax.get(i));
 			// System.out.println(trax.get(i));
 		}
-		printStream.println("# Latency: " + latency + " ms\n");
+		printWriter.println();
 
 	}
 

@@ -1,3 +1,7 @@
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
+
 public class SharedData {
 	private int maxSize;
 	private int numClient;
@@ -7,6 +11,10 @@ public class SharedData {
 	private boolean endOfProgram;
 	private boolean outputToFile;
 	private String filePathName;
+	private File file;
+	private FileOutputStream fileOutputStream;
+	private PrintWriter printWriter;
+	private int fileBufferSize;
 
 	SharedData() {
 		maxSize = 1024;
@@ -82,6 +90,14 @@ public class SharedData {
 
 	public void setFilePathName(String filePathName) {
 		this.filePathName = filePathName;
+	}
+
+	public int getFileBufferSize() {
+		return fileBufferSize;
+	}
+
+	public void setFileBufferSize(int fileBufferSize) {
+		this.fileBufferSize = fileBufferSize;
 	}
 
 }
