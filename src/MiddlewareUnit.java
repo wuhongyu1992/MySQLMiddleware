@@ -140,10 +140,6 @@ public class MiddlewareUnit extends Thread {
 
 			server.sendOutput(serverDataArray);
 
-			// if (server.clientQuit()) {
-			// break;
-			// }
-
 		}
 		server.close();
 		client.close();
@@ -356,15 +352,20 @@ public class MiddlewareUnit extends Thread {
 
 	private void printTrax() {
 		++traxNum;
-		printWriter.println("Client ID: " + clientID + "   Transaction ID: "
+		String s = "Client ID: " + clientID + "   Transaction ID: "
 				+ traxNum + "   Start: " + getTimeString(traxStart)
 				+ "   End: " + getTimeString(traxEnd) + "   Latency: "
-				+ (traxEnd - traxStart) + " ms");
+				+ (traxEnd - traxStart) + " ms";
+		printWriter.println(s);
+		sharedData.printTrax(s);
 		for (int i = 0; i < trax.size(); ++i) {
 			printWriter.println(trax.get(i));
+			sharedData.printTrax(trax.get(i));
 			// System.out.println(trax.get(i));
 		}
 		printWriter.println();
+		sharedData.printTrax("");
+		sharedData.addFileBufferSize(trax.size()/2);
 
 	}
 

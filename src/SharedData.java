@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 
@@ -22,6 +23,30 @@ public class SharedData {
 		endOfProgram = false;
 		outputToFile = false;
 		filePathName = null;
+	}
+	
+	public void setFileOutputStream() {
+		file = new File(filePathName + "/Transactions/AllTransactions.txt");
+		int i = 0;
+		while (file.exists() && !file.isDirectory()) {
+			++i;
+			file = new File(filePathName + "/Transactions/AllTransactions(" + i + ").txt");
+		}
+		try {
+			fileOutputStream = new FileOutputStream(file);
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		}
+		printWriter = new PrintWriter(fileOutputStream, false);
+	}
+	
+	public void printTrax(String s) {
+		printWriter.println(s);
+	}
+	
+	public void flushOutput() {
+		printWriter.flush();
+		fileBufferSize = 0;
 	}
 
 	public int getMaxSize() {
@@ -96,8 +121,8 @@ public class SharedData {
 		return fileBufferSize;
 	}
 
-	public void setFileBufferSize(int fileBufferSize) {
-		this.fileBufferSize = fileBufferSize;
+	public void addFileBufferSize(int n) {
+		fileBufferSize += n;
 	}
 
 }
