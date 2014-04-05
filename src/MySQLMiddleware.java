@@ -12,6 +12,7 @@ public class MySQLMiddleware {
 		sharedData.setMiddlePortNum(3306);
 		sharedData.setFilePathName(".");
 		sharedData.setOutputToFile(true);
+		sharedData.setFileOutputStream();
 
 		MiddleServerSocket middleServerSock = new MiddleServerSocket(sharedData);
 		middleServerSock.start();
@@ -50,6 +51,7 @@ public class MySQLMiddleware {
 			}
 		}
 
+		sharedData.flushOutput();
 		System.out.println("main end");
 
 		return;

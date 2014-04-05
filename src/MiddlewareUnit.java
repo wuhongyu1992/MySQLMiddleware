@@ -261,6 +261,8 @@ public class MiddlewareUnit extends Thread {
 	}
 
 	private static boolean isErrorPacket(ArrayList<Byte> array) {
+		if (array.size() < 5)
+			return false;
 		if (array.get(4).byteValue() == (byte) 255)
 			return true;
 
