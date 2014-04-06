@@ -32,6 +32,7 @@ public class SharedData {
 			++i;
 			file = new File(filePathName + "/Transactions/AllTransactions(" + i + ").txt");
 		}
+		
 		try {
 			fileOutputStream = new FileOutputStream(file);
 		} catch (FileNotFoundException e1) {
@@ -115,6 +116,10 @@ public class SharedData {
 
 	public void setFilePathName(String filePathName) {
 		this.filePathName = filePathName;
+		file = new File(filePathName + "/Transactions");
+		if (!file.exists()) {
+			file.mkdirs();
+		}
 	}
 
 	public int getFileBufferSize() {
