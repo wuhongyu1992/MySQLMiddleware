@@ -28,19 +28,7 @@ public class MiddleSocket {
 	public void sendOutput(ArrayList<Byte> array) {
 		int len = array.size();
 		byte[] b = new byte[array.size()];
-		
-//		for (int i = 0; i < array.size(); ++i) {
-//			if (b[i] < (byte) 32) {
-//
-//				System.out.print(".");
-//
-//			} else if (b[i] >= (byte) 32 && b[i] < (byte) 127)
-//				System.out.print((char) b[i]);
-//			else
-//				System.out.printf(" %02x ", b[i]);
-//		}
-//		System.out.println();
-		
+
 		for (int i = 0; i < array.size(); ++i) {
 			b[i] = array.get(i).byteValue();
 		}
@@ -55,7 +43,6 @@ public class MiddleSocket {
 	public int getInput(byte[] byteArray) {
 		int len = 0;
 		try {
-
 			len = inData.read(byteArray);
 
 		} catch (IOException ioe) {
@@ -77,14 +64,14 @@ public class MiddleSocket {
 			e.printStackTrace();
 		}
 	}
-	
 
 	public boolean hasInput() {
 		try {
 			int i = inData.available();
-//			System.out.println("available" + i);
+			// if (i != 0)
+			// System.out.println("available " + i);
 			return (i != 0);
-//			return (inData.available() != 0);
+			// return (inData.available() != 0);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

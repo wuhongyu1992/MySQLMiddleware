@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 
 public class SharedData {
 	private int maxSize;
@@ -11,11 +12,14 @@ public class SharedData {
 	private int middlePortNum;
 	private boolean endOfProgram;
 	private boolean outputToFile;
+	private boolean clearClients;
 	private String filePathName;
 	private File file;
 	private FileOutputStream fileOutputStream;
 	private PrintWriter printWriter;
 	private int fileBufferSize;
+	private ArrayList<MiddlewareUnit> units;
+	private boolean outputFlag;
 
 	SharedData() {
 		maxSize = 1024;
@@ -23,6 +27,9 @@ public class SharedData {
 		endOfProgram = false;
 		outputToFile = false;
 		filePathName = null;
+		units = new ArrayList<MiddlewareUnit>();
+		outputFlag = false;
+		clearClients = false;
 	}
 	
 	public void setFileOutputStream() {
@@ -129,5 +136,35 @@ public class SharedData {
 	public void addFileBufferSize(int n) {
 		fileBufferSize += n;
 	}
+
+	public void addUnit(MiddlewareUnit newUnit) {
+		units.add(newUnit);
+	}
+
+	public boolean isOutputFlag() {
+		return outputFlag;
+	}
+
+	public void setOutputFlag(boolean outputFlag) {
+		this.outputFlag = outputFlag;
+	}
+
+	public boolean isClearClients() {
+		return clearClients;
+	}
+
+	public void setClearClients(boolean clearClients) {
+		this.clearClients = clearClients;
+	}
+
+	/*@SuppressWarnings("deprecation")
+	public void killAllUnits() {
+		while (!units.isEmpty()) {
+			if (units.get(0).isAlive())
+				units.remove(0);
+			else 
+				units.get(0).stop();
+		}
+	}*/
 
 }

@@ -33,6 +33,19 @@ public class MySQLMiddleware {
 			if (s.contentEquals("c")) {
 				sharedData.setOutputToFile(false);
 			}
+			if (s.contentEquals("f")) {
+				sharedData.setOutputFlag(false);
+			}
+			if (s.contentEquals("t")) {
+				sharedData.setOutputFlag(true);
+			}
+
+			if (s.contentEquals("p")) {
+				sharedData.setClearClients(true);
+			}
+			// if (s.contentEquals("k")) {
+			// sharedData.killAllUnits();
+			// }
 
 			if (s.charAt(0) == 's') {
 				s = s.replace('s', ' ');

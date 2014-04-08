@@ -10,8 +10,6 @@ import java.util.GregorianCalendar;
 
 public class MiddlewareUnit extends Thread {
 
-	final boolean outputFlag = false;
-
 	private MiddleServer server;
 	private MiddleClient client;
 	private SharedData sharedData;
@@ -34,7 +32,7 @@ public class MiddlewareUnit extends Thread {
 	private boolean inTrax;
 	private boolean autoCommit;
 
-//	private int latency;
+	// private int latency;
 	private long sendTime;
 	private long recTime;
 	private Calendar cal;
@@ -80,65 +78,71 @@ public class MiddlewareUnit extends Thread {
 
 	public void run() {
 
-		while (!sharedData.isEndOfProgram()) {
+		while (!sharedData.isEndOfProgram() && !sharedData.isClearClients()) {
 			if (!server.isConnected()) {
 				break;
 			}
-			// System.out.println(i);
 
-			clientDataArray.clear();
+			// System.out.println("ttttt");
+			if (server.hasInput()) {
 
-			// System.out.println("before read");
-			getClientData();
+				// System.out.println("ttttt");
+				clientDataArray.clear();
 
-			if (sharedData.isEndOfProgram()) {
-				break;
-			}
+				// System.out.println("before read");
+				getClientData();
 
-			checkAutoCommit();
-			if (sharedData.isOutputToFile() && !inTrax && traxBegin()) {
-				inTrax = true;
-				traxStart = System.currentTimeMillis();
-				// System.out.println("Transaction begins.");
-
-			}
-
-			recTime = 0;
-			serverDataArray.clear();
-
-			if (outputFlag)
-				showClientData(clientDataArray);
-
-			client.sendOutput(clientDataArray);
-			sendTime = System.currentTimeMillis();
-
-			getServerData();
-
-			if (serverDataArray.size() == 0) {
-				break;
-			}
-
-			// if (inTrax) {
-			// latency += recTime - sendTime;
-			// }
-			if (inTrax) {
-				// System.out.print("Client: ");
-				// showClientData(clientDataArray);
-				addSQLToTrax();
-				if (traxEnd()) {
-					inTrax = false;
-					traxEnd = System.currentTimeMillis();
-					// System.out.println("Transaction ends.");
-
-					printTrax();
-					trax.clear();
+				if (sharedData.isEndOfProgram()) {
+					break;
 				}
+
+				checkAutoCommit();
+				if (sharedData.isOutputToFile() && !inTrax && traxBegin()) {
+					inTrax = true;
+					traxStart = System.currentTimeMillis();
+					// System.out.println("Transaction begins.");
+
+				}
+
+				recTime = 0;
+				serverDataArray.clear();
+
+				if (sharedData.isOutputFlag())
+					showClientData(clientDataArray);
+
+				client.sendOutput(clientDataArray);
+				sendTime = System.currentTimeMillis();
 			}
 
-			// System.out.print("Server: ");
-			// showData(serverData, serverDataLen);
+			if (clientQuit())
+				break;
 
-			server.sendOutput(serverDataArray);
+			if (client.hasInput()) {
+				getServerData();
+
+				if (serverDataArray.size() == 0) {
+					break;
+				}
+
+				if (inTrax) {
+					// System.out.print("Client: ");
+					// showClientData(clientDataArray);
+					addSQLToTrax();
+					if (traxEnd()) {
+						inTrax = false;
+						traxEnd = System.currentTimeMillis();
+						// System.out.println("Transaction ends.");
+
+						printTrax();
+						trax.clear();
+					}
+				}
+
+				// System.out.print("Server: ");
+				// showData(serverData, serverDataLen);
+
+				server.sendOutput(serverDataArray);
+			}
 
 		}
 		server.close();
@@ -152,6 +156,12 @@ public class MiddlewareUnit extends Thread {
 			printWriter.flush();
 		System.out.println("Client(" + clientPortNum + ") quit");
 
+	}
+
+	private boolean clientQuit() {
+		if (clientDataArray.get(4).byteValue() == (byte) 1)
+			return true;
+		return false;
 	}
 
 	private void checkAutoCommit() {
@@ -200,18 +210,17 @@ public class MiddlewareUnit extends Thread {
 		client.startClient();
 
 		serverDataLen = client.getInput(serverData);
-		if (outputFlag) {
+		if (sharedData.isOutputFlag()) {
 			System.out.println("s");
 			serverDataArray.clear();
-		}
-		if (outputFlag)
 			showData(serverData, serverDataLen);
+		}
 		addToList(serverDataArray, serverData, serverDataLen);
 		server.sendOutput(serverDataArray);
 
 		clientDataLen = server.getInput(clientData);
 
-		if (outputFlag) {
+		if (sharedData.isOutputFlag()) {
 			System.out.println("c");
 			showData(clientData, clientDataLen);
 			System.out.println("send client info");
@@ -223,14 +232,14 @@ public class MiddlewareUnit extends Thread {
 
 		serverDataLen = client.getInput(serverData);
 
-		if (outputFlag) {
+		if (sharedData.isOutputFlag()) {
 			System.out.println("s");
 			showData(serverData, serverDataLen);
 		}
 
 		serverDataArray.clear();
 		addToList(serverDataArray, serverData, serverDataLen);
-		if (outputFlag)
+		if (sharedData.isOutputFlag())
 			System.out.println("get server OK packet");
 
 		server.sendOutput(serverDataArray);
@@ -270,6 +279,7 @@ public class MiddlewareUnit extends Thread {
 	}
 
 	private static void showData(byte[] b, int len) {
+		System.out.print(len + " ");
 		System.out.printf("%02x", b[0]);
 		System.out.print(" ");
 		System.out.printf("%02x", b[1]);
@@ -354,9 +364,9 @@ public class MiddlewareUnit extends Thread {
 
 	private void printTrax() {
 		++traxNum;
-		String s = "Client ID: " + clientID + "   Transaction ID: "
-				+ traxNum + "   Start: " + getTimeString(traxStart)
-				+ "   End: " + getTimeString(traxEnd) + "   Latency: "
+		String s = "Client ID: " + clientID + "   Transaction ID: " + traxNum
+				+ "   Start: " + getTimeString(traxStart) + "   End: "
+				+ getTimeString(traxEnd) + "   Latency: "
 				+ (traxEnd - traxStart) + " ms";
 		printWriter.println(s);
 		sharedData.printTrax(s);
@@ -367,7 +377,7 @@ public class MiddlewareUnit extends Thread {
 		}
 		printWriter.println();
 		sharedData.printTrax("");
-		sharedData.addFileBufferSize(trax.size()/2);
+		sharedData.addFileBufferSize(trax.size() / 2);
 
 	}
 

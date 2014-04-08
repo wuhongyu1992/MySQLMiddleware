@@ -29,15 +29,17 @@ public class MiddleServerSocket extends Thread {
 			try {
 				socket = serverSock.accept();
 			} catch (SocketTimeoutException e1) {
-				
+
 			} catch (IOException e2) {
 				e2.printStackTrace();
 			}
 
 			if (socket != null) {
+				sharedData.setClearClients(false);
 				MiddlewareUnit newUnit = new MiddlewareUnit(sharedData);
 				if (newUnit.setUp(socket)) {
 					newUnit.start();
+					// sharedData.addUnit(newUnit);
 				}
 			}
 		}
