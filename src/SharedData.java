@@ -20,6 +20,7 @@ public class SharedData {
 	private int fileBufferSize;
 	private ArrayList<MiddlewareUnit> units;
 	private boolean outputFlag;
+	private int outputSize;
 
 	SharedData() {
 		maxSize = 1024;
@@ -155,6 +156,14 @@ public class SharedData {
 
 	public void setClearClients(boolean clearClients) {
 		this.clearClients = clearClients;
+	}
+
+	public int getOutputSize() {
+		return outputSize;
+	}
+
+	public void setOutputSize(int outputSize) {
+		this.outputSize = outputSize;
 	}
 
 	/*@SuppressWarnings("deprecation")
