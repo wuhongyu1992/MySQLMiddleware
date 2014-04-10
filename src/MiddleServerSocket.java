@@ -42,10 +42,6 @@ public class MiddleServerSocket extends Thread {
 					// sharedData.addUnit(newUnit);
 				}
 			}
-
-			if (sharedData.getFileBufferSize() >= sharedData.getOutputSize()) {
-				sharedData.flushOutput();
-			}
 		}
 
 		System.out.println("server socket end");

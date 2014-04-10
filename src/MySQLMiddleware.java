@@ -4,6 +4,7 @@ public class MySQLMiddleware {
 
 	public static void main(String[] args) {
 		SharedData sharedData = new SharedData();
+		int fileBufferSize = 1000000;
 
 		sharedData.setMaxSize(1024);
 		sharedData.setServerIpAddr("127.0.0.1");
@@ -12,7 +13,6 @@ public class MySQLMiddleware {
 		sharedData.setFilePathName(".");
 		sharedData.setOutputToFile(true);
 		sharedData.setFileOutputStream();
-		sharedData.setOutputSize(10000);
 
 		MiddleServerSocket middleServerSock = new MiddleServerSocket(sharedData);
 		middleServerSock.start();
@@ -51,15 +51,17 @@ public class MySQLMiddleware {
 				s = s.replace('s', ' ');
 				s = s.trim();
 				try {
-					int bufferSize = Integer.parseInt(s);
-					sharedData.setOutputSize(bufferSize);
+					fileBufferSize = Integer.parseInt(s);
 					System.out.println("Set file buffer size to "
-							+ bufferSize);
+							+ fileBufferSize);
 				} catch (Exception e) {
 					System.out.println("invalid input");
 				}
 			}
 
+			if (sharedData.getFileBufferSize() >= fileBufferSize) {
+				sharedData.flushOutput();
+			}
 		}
 
 		sharedData.flushOutput();
