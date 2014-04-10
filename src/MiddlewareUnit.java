@@ -159,6 +159,8 @@ public class MiddlewareUnit extends Thread {
 	}
 
 	private boolean clientQuit() {
+		if (clientDataArray.size() < 5)
+			return false;
 		if (clientDataArray.get(4).byteValue() == (byte) 1)
 			return true;
 		return false;
@@ -189,9 +191,10 @@ public class MiddlewareUnit extends Thread {
 
 			addToList(serverDataArray, serverData, serverDataLen);
 
+			// System.out.println("server " + serverDataLen);
 			// System.out.print("server: ");
 			// showData(serverData, serverDataLen);
-		} while (serverDataLen == maxSize);
+		} while (client.hasInput());
 
 	}
 
@@ -200,9 +203,10 @@ public class MiddlewareUnit extends Thread {
 			clientDataLen = server.getInput(clientData);
 			addToList(clientDataArray, clientData, clientDataLen);
 
+			// System.out.println("client " + clientDataLen);
 			// System.out.print("client: ");
 			// showData(clientData, clientDataLen);
-		} while (clientDataLen == maxSize);
+		} while (server.hasInput());
 	}
 
 	synchronized public boolean setUp(Socket socket) {

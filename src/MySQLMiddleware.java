@@ -24,6 +24,8 @@ public class MySQLMiddleware {
 
 		while (!sharedData.isEndOfProgram()) {
 			s = scanner.nextLine();
+			if (s.isEmpty())
+				continue;
 			if (s.contentEquals("q")) {
 				sharedData.setEndOfProgram(true);
 			}
