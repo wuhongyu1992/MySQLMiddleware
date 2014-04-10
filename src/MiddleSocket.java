@@ -26,10 +26,14 @@ public class MiddleSocket {
 	}
 
 	public void sendOutput(ArrayList<Byte> array) {
+		int len = array.size();
+		byte[] b = new byte[array.size()];
+
+		for (int i = 0; i < array.size(); ++i) {
+			b[i] = array.get(i).byteValue();
+		}
 		try {
-			for (int i = 0; i < array.size(); ++i) {
-				outData.writeByte(array.get(i));
-			}
+			outData.write(b, 0, len);
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.out.println("Error in output");
