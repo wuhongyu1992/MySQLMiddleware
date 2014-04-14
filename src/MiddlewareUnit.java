@@ -91,10 +91,10 @@ public class MiddlewareUnit extends Thread {
 
 				// System.out.println("before read");
 				getClientData();
-
-				if (sharedData.isEndOfProgram()) {
-					break;
-				}
+				//
+				// if (sharedData.isEndOfProgram()) {
+				// break;
+				// }
 
 				checkAutoCommit();
 				if (sharedData.isOutputToFile() && !inTrax && traxBegin()) {
@@ -105,19 +105,18 @@ public class MiddlewareUnit extends Thread {
 				}
 
 				recTime = 0;
-				serverDataArray.clear();
 
 				if (sharedData.isOutputFlag())
 					showClientData(clientDataArray);
 
 				client.sendOutput(clientDataArray);
 				sendTime = System.currentTimeMillis();
+				if (clientQuit())
+					break;
 			}
 
-			if (clientQuit())
-				break;
-
 			if (client.hasInput()) {
+				serverDataArray.clear();
 				getServerData();
 
 				if (serverDataArray.size() == 0) {
@@ -137,9 +136,6 @@ public class MiddlewareUnit extends Thread {
 						trax.clear();
 					}
 				}
-
-				// System.out.print("Server: ");
-				// showData(serverData, serverDataLen);
 
 				server.sendOutput(serverDataArray);
 			}
@@ -192,8 +188,10 @@ public class MiddlewareUnit extends Thread {
 			addToList(serverDataArray, serverData, serverDataLen);
 
 			// System.out.println("server " + serverDataLen);
-			// System.out.print("server: ");
-			// showData(serverData, serverDataLen);
+			if (sharedData.isOutputFlag()) {
+				System.out.print("server: ");
+				showData(serverData, serverDataLen);
+			}
 		} while (client.hasInput());
 
 	}
@@ -349,7 +347,7 @@ public class MiddlewareUnit extends Thread {
 		s += cal.get(Calendar.MINUTE);
 		s += ':';
 		s += cal.get(Calendar.SECOND);
-		s += ':';
+		s += ',';
 		s += cal.get(Calendar.MILLISECOND);
 
 		return s;
