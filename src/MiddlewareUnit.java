@@ -116,12 +116,12 @@ public class MiddlewareUnit extends Thread {
 			}
 
 			if (client.hasInput()) {
-				serverDataArray.clear();
-				getServerData();
-
-				if (serverDataArray.size() == 0) {
-					break;
-				}
+				// serverDataArray.clear();
+				// getServerData();
+				//
+				// if (serverDataArray.size() == 0) {
+				// break;
+				// }
 
 				if (inTrax) {
 					// System.out.print("Client: ");
@@ -136,8 +136,11 @@ public class MiddlewareUnit extends Thread {
 						trax.clear();
 					}
 				}
+				
+				serverDataLen = client.getInput(serverData);
+				server.sendOutput(serverData, serverDataLen);
 
-				server.sendOutput(serverDataArray);
+				// server.sendOutput(serverDataArray);
 			}
 
 		}

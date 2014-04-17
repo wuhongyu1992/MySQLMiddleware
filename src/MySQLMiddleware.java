@@ -5,7 +5,7 @@ public class MySQLMiddleware {
 	public static void main(String[] args) {
 		SharedData sharedData = new SharedData();
 
-		sharedData.setMaxSize(1024);
+		sharedData.setMaxSize(16*1024);
 		sharedData.setServerIpAddr("127.0.0.1");
 		sharedData.setServerPortNum(3320);
 		sharedData.setMiddlePortNum(3306);

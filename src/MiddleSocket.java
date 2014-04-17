@@ -39,6 +39,15 @@ public class MiddleSocket {
 			System.out.println("Error in output");
 		}
 	}
+	
+	public void sendOutput(byte[] b, int len) {
+		try {
+			outData.write(b, 0, len);
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.out.println("Error in output");
+		}
+	}
 
 	public int getInput(byte[] byteArray) {
 		int len = 0;
