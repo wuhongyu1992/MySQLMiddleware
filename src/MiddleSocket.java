@@ -3,6 +3,7 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 
@@ -10,10 +11,8 @@ public class MiddleSocket {
 	protected Socket socket;
 	protected String ipAddr;
 	protected int portNum;
-//	protected DataOutputStream outData;
-//	protected DataInputStream inData;
-	protected BufferedOutputStream outData;
-	protected BufferedInputStream inData;
+	protected DataOutputStream outData;
+	protected DataInputStream inData;
 
 	public MiddleSocket(String ip, int port) {
 		ipAddr = ip;
@@ -28,21 +27,31 @@ public class MiddleSocket {
 		inData = null;
 		outData = null;
 	}
+	
+	public void setStream() {
 
-	public void sendOutput(ArrayList<Byte> array) {
-		int len = array.size();
-		byte[] b = new byte[array.size()];
-
-		for (int i = 0; i < array.size(); ++i) {
-			b[i] = array.get(i).byteValue();
-		}
 		try {
-			outData.write(b, 0, len);
+			outData = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+			inData = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.out.println("Error in output");
 		}
 	}
+//
+//	public void sendOutput(ArrayList<Byte> array) {
+//		int len = array.size();
+//		byte[] b = new byte[array.size()];
+//
+//		for (int i = 0; i < array.size(); ++i) {
+//			b[i] = array.get(i).byteValue();
+//		}
+//		try {
+//			outData.write(b, 0, len);
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//			System.out.println("Error in output");
+//		}
+//	}
 	
 	public void sendOutput(byte[] b, int len) {
 		try {

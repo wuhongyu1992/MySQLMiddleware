@@ -44,6 +44,9 @@ public class MiddlewareUnit extends Thread {
 
 	private int clientID;
 
+	private long ts0, ts1, ts2, ts3, ts4, ts5, ts6;
+	private long t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0;
+
 	MiddlewareUnit(SharedData s) {
 		sharedData = s;
 		maxSize = sharedData.getMaxSize();
@@ -79,23 +82,24 @@ public class MiddlewareUnit extends Thread {
 	public void run() {
 
 		while (!sharedData.isEndOfProgram() && !sharedData.isClearClients()) {
-			if (!middleServer.isConnected()) {
-				break;
-			}
+
 
 			// System.out.println("ttttt");
 			if (middleServer.hasInput()) {
+				ts0 = System.currentTimeMillis();
 
 				// System.out.println("ttttt");
 				// clientDataArray.clear();
 
 				// System.out.println("before read");
-//				getClientData();
+				// getClientData();
 				clientDataLen = middleServer.getInput(clientData);
 				//
 				// if (sharedData.isEndOfProgram()) {
 				// break;
 				// }
+
+				ts1 = System.currentTimeMillis();
 
 				checkAutoCommit();
 				if (sharedData.isOutputToFile() && !inTrax && traxBegin()) {
@@ -111,13 +115,22 @@ public class MiddlewareUnit extends Thread {
 				// showClientData(clientDataArray);
 
 				// middleClient.sendOutput(clientDataArray);
+
+				ts2 = System.currentTimeMillis();
+
 				middleClient.sendOutput(clientData, clientDataLen);
 				sendTime = System.currentTimeMillis();
 				if (clientQuit())
 					break;
+				ts3 = System.currentTimeMillis();
+				t0 += ts1 - ts0;
+				t1 += ts2 - ts1;
+				t2 += ts3 - ts2;
 			}
 
+
 			if (middleClient.hasInput()) {
+				ts3 = System.currentTimeMillis();
 				// serverDataArray.clear();
 				// getServerData();
 				//
@@ -139,11 +152,23 @@ public class MiddlewareUnit extends Thread {
 					}
 				}
 
+				ts4 = System.currentTimeMillis();
+
 				serverDataLen = middleClient.getInput(serverData);
+
+				ts5 = System.currentTimeMillis();
+
 				middleServer.sendOutput(serverData, serverDataLen);
 
 				// middleServer.sendOutput(serverDataArray);
+				ts6 = System.currentTimeMillis();
+
+				t3 += ts4 - ts3;
+				t4 += ts5 - ts4;
+				t5 += ts6 - ts5;
 			}
+
+
 
 		}
 		middleServer.close();
@@ -156,6 +181,14 @@ public class MiddlewareUnit extends Thread {
 		if (printWriter != null)
 			printWriter.flush();
 		System.out.println("client(" + clientPortNum + ") quit");
+		long t = t0 + t1 + t2 + t3 + t4 + t5;
+		System.out.println("t0: " + (double) t0/t);
+		System.out.println("t1: " + (double) t1/t);
+		System.out.println("t2: " + (double) t2/t);
+		System.out.println("t3: " + (double) t3/t);
+		System.out.println("t4: " + (double) t4/t);
+		System.out.println("t5: " + (double) t5/t);
+		System.out.println();
 
 	}
 
@@ -408,46 +441,46 @@ public class MiddlewareUnit extends Thread {
 		System.out.println("client(" + clientPortNum + ") fails connection.");
 	}
 
-//	private void showClientData(ArrayList<Byte> array) {
-//
-//		switch (array.get(4)) {
-//		case 1:
-//			System.out.print("client quit");
-//			break;
-//		case 2:
-//			System.out.print("select database: ");
-//			break;
-//		case 3:
-//			System.out.print("");
-//			break;
-//		case 4:
-//			System.out.print("list field: ");
-//			break;
-//		case 5:
-//			System.out.print("create database: ");
-//			break;
-//		case 6:
-//			System.out.print("drop database: ");
-//			break;
-//		default:
-//			break;
-//
-//		}
-//
-//		for (int i = 5; i < array.size(); ++i) {
-//			if (array.get(i) < (byte) 32) {
-//				// System.out.print(new String ("'"));
-//				// System.out.print((byte) b[i]);
-//				// System.out.print(new String ("'"));
-//				System.out.print(".");
-//
-//			} else if (array.get(i) >= (byte) 32 && array.get(i) < (byte) 127)
-//				System.out.print((char) array.get(i).byteValue());
-//			else
-//				System.out.printf(" %02x ", array.get(i));
-//		}
-//		System.out.println();
-//
-//	}
+	// private void showClientData(ArrayList<Byte> array) {
+	//
+	// switch (array.get(4)) {
+	// case 1:
+	// System.out.print("client quit");
+	// break;
+	// case 2:
+	// System.out.print("select database: ");
+	// break;
+	// case 3:
+	// System.out.print("");
+	// break;
+	// case 4:
+	// System.out.print("list field: ");
+	// break;
+	// case 5:
+	// System.out.print("create database: ");
+	// break;
+	// case 6:
+	// System.out.print("drop database: ");
+	// break;
+	// default:
+	// break;
+	//
+	// }
+	//
+	// for (int i = 5; i < array.size(); ++i) {
+	// if (array.get(i) < (byte) 32) {
+	// // System.out.print(new String ("'"));
+	// // System.out.print((byte) b[i]);
+	// // System.out.print(new String ("'"));
+	// System.out.print(".");
+	//
+	// } else if (array.get(i) >= (byte) 32 && array.get(i) < (byte) 127)
+	// System.out.print((char) array.get(i).byteValue());
+	// else
+	// System.out.printf(" %02x ", array.get(i));
+	// }
+	// System.out.println();
+	//
+	// }
 
 }
