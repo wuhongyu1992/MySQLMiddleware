@@ -391,7 +391,7 @@ public class MiddlewareUnit extends Thread {
 	}
 
 	private void checkAutoCommit() {
-		if (clientDataLen < 6)
+		if (clientDataLen < 6 || clientDataLen > 21)
 			return;
 
 		String s = new String(clientData, 5, clientDataLen - 5);
@@ -407,7 +407,7 @@ public class MiddlewareUnit extends Thread {
 	private boolean traxBegin() {
 		if (!autoCommit)
 			return true;
-		if (clientDataLen < 6)
+		if (clientDataLen < 6 || clientDataLen > 22)
 			return false;
 
 		String s = new String(clientData, 5, clientDataLen - 5);
@@ -425,7 +425,7 @@ public class MiddlewareUnit extends Thread {
 	// }
 
 	private boolean traxEnd() {
-		if (clientDataLen < 6)
+		if (clientDataLen < 6 || clientDataLen > 15)
 			return false;
 		String s = new String(clientData, 5, clientDataLen - 5);
 
