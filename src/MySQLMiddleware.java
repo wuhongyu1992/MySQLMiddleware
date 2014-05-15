@@ -5,10 +5,10 @@ public class MySQLMiddleware {
 	public static void main(String[] args) {
 		SharedData sharedData = new SharedData();
 
-		sharedData.setMaxSize(16*1024);
+		sharedData.setMaxSize(16 * 1024);
 		sharedData.setServerIpAddr("127.0.0.1");
-		sharedData.setServerPortNum(3320);
-		sharedData.setMiddlePortNum(3306);
+		sharedData.setServerPortNum(3306);
+		sharedData.setMiddlePortNum(3320);
 		sharedData.setFilePathName(".");
 		sharedData.setOutputToFile(true);
 		sharedData.setFileOutputStream();
@@ -55,8 +55,7 @@ public class MySQLMiddleware {
 				try {
 					int bufferSize = Integer.parseInt(s);
 					sharedData.setOutputSize(bufferSize);
-					System.out.println("Set file buffer size to "
-							+ bufferSize);
+					System.out.println("Set file buffer size to " + bufferSize);
 				} catch (Exception e) {
 					System.out.println("invalid input");
 				}
@@ -66,6 +65,7 @@ public class MySQLMiddleware {
 
 		sharedData.flushOutput();
 		System.out.println("main end");
+		scanner.close();
 
 		return;
 	}

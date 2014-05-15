@@ -10,8 +10,8 @@ import java.util.GregorianCalendar;
 
 public class MiddlewareUnit extends Thread {
 
-	private MiddleServer server;
-	private MiddleClient client;
+	private MiddleServer middleServer;
+	private MiddleClient middleClient;
 	private SharedData sharedData;
 	private int maxSize;
 	private int clientPortNum;
@@ -22,8 +22,8 @@ public class MiddlewareUnit extends Thread {
 	private byte[] serverData;
 	private int serverDataLen;
 
-	private ArrayList<Byte> clientDataArray;
-	private ArrayList<Byte> serverDataArray;
+	// private ArrayList<Byte> clientDataArray;
+	// private ArrayList<Byte> serverDataArray;
 
 	private ArrayList<String> trax;
 	private int traxNum;
@@ -48,8 +48,8 @@ public class MiddlewareUnit extends Thread {
 		sharedData = s;
 		maxSize = sharedData.getMaxSize();
 
-		server = new MiddleServer();
-		client = new MiddleClient(sharedData.getServerIpAddr(),
+		middleServer = new MiddleServer();
+		middleClient = new MiddleClient(sharedData.getServerIpAddr(),
 				sharedData.getServerPortNum());
 
 		clientData = new byte[maxSize];
@@ -58,8 +58,8 @@ public class MiddlewareUnit extends Thread {
 		serverData = new byte[maxSize];
 		serverDataLen = 0;
 
-		clientDataArray = new ArrayList<Byte>();
-		serverDataArray = new ArrayList<Byte>();
+		// clientDataArray = new ArrayList<Byte>();
+		// serverDataArray = new ArrayList<Byte>();
 
 		trax = new ArrayList<String>();
 		traxNum = 0;
@@ -79,18 +79,19 @@ public class MiddlewareUnit extends Thread {
 	public void run() {
 
 		while (!sharedData.isEndOfProgram() && !sharedData.isClearClients()) {
-			if (!server.isConnected()) {
+			if (!middleServer.isConnected()) {
 				break;
 			}
 
 			// System.out.println("ttttt");
-			if (server.hasInput()) {
+			if (middleServer.hasInput()) {
 
 				// System.out.println("ttttt");
-				clientDataArray.clear();
+				// clientDataArray.clear();
 
 				// System.out.println("before read");
-				getClientData();
+//				getClientData();
+				clientDataLen = middleServer.getInput(clientData);
 				//
 				// if (sharedData.isEndOfProgram()) {
 				// break;
@@ -106,16 +107,17 @@ public class MiddlewareUnit extends Thread {
 
 				recTime = 0;
 
-				if (sharedData.isOutputFlag())
-					showClientData(clientDataArray);
+				// if (sharedData.isOutputFlag())
+				// showClientData(clientDataArray);
 
-				client.sendOutput(clientDataArray);
+				// middleClient.sendOutput(clientDataArray);
+				middleClient.sendOutput(clientData, clientDataLen);
 				sendTime = System.currentTimeMillis();
 				if (clientQuit())
 					break;
 			}
 
-			if (client.hasInput()) {
+			if (middleClient.hasInput()) {
 				// serverDataArray.clear();
 				// getServerData();
 				//
@@ -124,7 +126,7 @@ public class MiddlewareUnit extends Thread {
 				// }
 
 				if (inTrax) {
-					// System.out.print("Client: ");
+					// System.out.print("middleClient: ");
 					// showClientData(clientDataArray);
 					addSQLToTrax();
 					if (traxEnd()) {
@@ -136,16 +138,16 @@ public class MiddlewareUnit extends Thread {
 						trax.clear();
 					}
 				}
-				
-				serverDataLen = client.getInput(serverData);
-				server.sendOutput(serverData, serverDataLen);
 
-				// server.sendOutput(serverDataArray);
+				serverDataLen = middleClient.getInput(serverData);
+				middleServer.sendOutput(serverData, serverDataLen);
+
+				// middleServer.sendOutput(serverDataArray);
 			}
 
 		}
-		server.close();
-		client.close();
+		middleServer.close();
+		middleClient.close();
 
 		if (printWriter != null) {
 			printWriter.close();
@@ -153,77 +155,59 @@ public class MiddlewareUnit extends Thread {
 
 		if (printWriter != null)
 			printWriter.flush();
-		System.out.println("Client(" + clientPortNum + ") quit");
+		System.out.println("client(" + clientPortNum + ") quit");
 
 	}
 
 	private boolean clientQuit() {
-		if (clientDataArray.size() < 5)
+		if (clientDataLen < 5)
 			return false;
-		if (clientDataArray.get(4).byteValue() == (byte) 1)
+		if (clientData[4] == (byte) 1)
 			return true;
 		return false;
 	}
 
-	private void checkAutoCommit() {
-		if (clientDataArray.size() < 6)
-			return;
-		byte[] temp = new byte[clientDataArray.size() - 5];
-		for (int i = 5; i < clientDataArray.size(); ++i) {
-			temp[i - 5] = clientDataArray.get(i).byteValue();
-		}
-		String s = new String(temp);
-		s = s.toLowerCase();
-		s = s.replaceAll("\\s", "");
-		if (s.contentEquals("setautocommit=0"))
-			autoCommit = false;
-		if (s.contentEquals("setautocommit=1"))
-			autoCommit = true;
-
-	}
-
-	private void getServerData() {
-		do {
-			serverDataLen = client.getInput(serverData);
-			if (recTime == 0)
-				recTime = System.currentTimeMillis();
-
-			addToList(serverDataArray, serverData, serverDataLen);
-
-			// System.out.println("server " + serverDataLen);
-			if (sharedData.isOutputFlag()) {
-				System.out.print("server: ");
-				showData(serverData, serverDataLen);
-			}
-		} while (client.hasInput());
-
-	}
-
-	private void getClientData() {
-		do {
-			clientDataLen = server.getInput(clientData);
-			addToList(clientDataArray, clientData, clientDataLen);
-
-			// System.out.println("client " + clientDataLen);
-			// System.out.print("client: ");
-			// showData(clientData, clientDataLen);
-		} while (server.hasInput());
-	}
+	//
+	// private void getServerData() {
+	// do {
+	// serverDataLen = middleClient.getInput(serverData);
+	// if (recTime == 0)
+	// recTime = System.currentTimeMillis();
+	//
+	// addToList(serverDataArray, serverData, serverDataLen);
+	//
+	// // System.out.println("middleServer " + serverDataLen);
+	// if (sharedData.isOutputFlag()) {
+	// System.out.print("server: ");
+	// showData(serverData, serverDataLen);
+	// }
+	// } while (middleClient.hasInput());
+	//
+	// }
+	//
+	// private void getClientData() {
+	// do {
+	// clientDataLen = middleServer.getInput(clientData);
+	// addToList(clientDataArray, clientData, clientDataLen);
+	//
+	// // System.out.println("middleClient " + clientDataLen);
+	// // System.out.print("middleClient: ");
+	// // showData(clientData, clientDataLen);
+	// } while (middleServer.hasInput());
+	// }
 
 	synchronized public boolean setUp(Socket socket) {
-		server.startServer(socket);
-		client.startClient();
+		middleServer.startServer(socket);
+		middleClient.startClient();
 
-		serverDataLen = client.getInput(serverData);
+		serverDataLen = middleClient.getInput(serverData);
 		if (sharedData.isOutputFlag()) {
 			System.out.println("s");
-			serverDataArray.clear();
 			showData(serverData, serverDataLen);
 		}
-		addToList(serverDataArray, serverData, serverDataLen);
-		server.sendOutput(serverDataArray);
+		middleServer.sendOutput(serverData, serverDataLen);
 
-		clientDataLen = server.getInput(clientData);
+		clientDataLen = middleServer.getInput(clientData);
 
 		if (sharedData.isOutputFlag()) {
 			System.out.println("c");
@@ -231,53 +215,49 @@ public class MiddlewareUnit extends Thread {
 			System.out.println("send client info");
 		}
 
-		clientDataArray.clear();
-		addToList(clientDataArray, clientData, clientDataLen);
-		client.sendOutput(clientDataArray);
+		middleClient.sendOutput(clientData, clientDataLen);
 
-		serverDataLen = client.getInput(serverData);
+		serverDataLen = middleClient.getInput(serverData);
 
 		if (sharedData.isOutputFlag()) {
 			System.out.println("s");
 			showData(serverData, serverDataLen);
 		}
 
-		serverDataArray.clear();
-		addToList(serverDataArray, serverData, serverDataLen);
 		if (sharedData.isOutputFlag())
 			System.out.println("get server OK packet");
 
-		server.sendOutput(serverDataArray);
+		middleServer.sendOutput(serverData, serverDataLen);
 
-		if (isErrorPacket(serverDataArray)) {
+		if (isErrorPacket(serverData, serverDataLen)) {
 			printFailConnection();
 			return false;
 		}
 
 		sharedData.addClient();
-		clientPortNum = server.getClientPort();
+		clientPortNum = middleServer.getClientPort();
 		clientID = sharedData.getNumClient();
 		try {
 			setFileOutputStream();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		System.out.println("Client(" + clientPortNum + ") login");
+		System.out.println("client(" + clientPortNum + ") login");
 
 		return true;
 	}
 
-	private static void addToList(ArrayList<Byte> dataArray, byte[] data,
-			int len) {
-		for (int i = 0; i < len; ++i) {
-			dataArray.add(data[i]);
-		}
-	}
+	// private void addToList(ArrayList<Byte> dataArray, byte[] data,
+	// int len) {
+	// for (int i = 0; i < len; ++i) {
+	// dataArray.add(data[i]);
+	// }
+	// }
 
-	private static boolean isErrorPacket(ArrayList<Byte> array) {
-		if (array.size() < 5)
+	private boolean isErrorPacket(byte[] b, int len) {
+		if (len < 5)
 			return false;
-		if (array.get(4).byteValue() == (byte) 255)
+		if (b[4] == (byte) 255)
 			return true;
 
 		return false;
@@ -312,26 +292,27 @@ public class MiddlewareUnit extends Thread {
 	}
 
 	private void addSQLToTrax() {
-		String s = "";
-		s += "Statement ID: ";
-		s += trax.size() / 2 + 1;
-		s += "   Start: ";
-		s += getTimeString(sendTime);
-		s += "   End: ";
-		s += getTimeString(recTime);
-		trax.add(s);
-		s = "";
+		StringBuilder sb = new StringBuilder();
 
-		for (int i = 5; i < clientDataArray.size(); ++i) {
-			if (clientDataArray.get(i) < (byte) 32) {
-				s += '.';
+		sb.append("Statement ID: ");
+		sb.append(trax.size() / 2 + 1);
+		sb.append("   Start: ");
+		sb.append(getTimeString(sendTime));
+		sb.append("   End: ");
+		sb.append(getTimeString(recTime));
+		trax.add(sb.toString());
+
+		sb = new StringBuilder(clientDataLen - 5);
+		for (int i = 5; i < clientDataLen; ++i) {
+			if (clientData[i] < (byte) 32) {
+				sb.append('.');
 
 			} else {
-				s += (char) clientDataArray.get(i).byteValue();
+				sb.append((char) clientData[i]);
 			}
 
 		}
-		trax.add(s);
+		trax.add(sb.toString());
 	}
 
 	private String getTimeString(long t) {
@@ -339,19 +320,10 @@ public class MiddlewareUnit extends Thread {
 		cal.setTime(date);
 		String s = "";
 
-		s += cal.get(Calendar.YEAR);
-		s += '-';
-		s += cal.get(Calendar.MONTH) + 1;
-		s += '-';
-		s += cal.get(Calendar.DATE);
-		s += ' ';
-		s += cal.get(Calendar.HOUR);
-		s += ':';
-		s += cal.get(Calendar.MINUTE);
-		s += ':';
-		s += cal.get(Calendar.SECOND);
-		s += ',';
-		s += cal.get(Calendar.MILLISECOND);
+		s += cal.get(Calendar.YEAR) + '-' + cal.get(Calendar.MONTH) + 1 + '-'
+				+ cal.get(Calendar.DATE) + ' ' + cal.get(Calendar.HOUR) + ':'
+				+ cal.get(Calendar.MINUTE) + ':' + cal.get(Calendar.SECOND)
+				+ ',' + cal.get(Calendar.MILLISECOND);
 
 		return s;
 	}
@@ -386,16 +358,27 @@ public class MiddlewareUnit extends Thread {
 
 	}
 
+	private void checkAutoCommit() {
+		if (clientDataLen < 6)
+			return;
+
+		String s = new String(clientData, 5, clientDataLen - 5);
+		s = s.toLowerCase();
+		s = s.replaceAll("\\s", "");
+		if (s.contentEquals("setautocommit=0"))
+			autoCommit = false;
+		if (s.contentEquals("setautocommit=1"))
+			autoCommit = true;
+
+	}
+
 	private boolean traxBegin() {
 		if (!autoCommit)
 			return true;
-		if (clientDataArray.size() < 6)
+		if (clientDataLen < 6)
 			return false;
-		byte[] temp = new byte[clientDataArray.size() - 5];
-		for (int i = 5; i < clientDataArray.size(); ++i) {
-			temp[i - 5] = clientDataArray.get(i).byteValue();
-		}
-		String s = new String(temp);
+
+		String s = new String(clientData, 5, clientDataLen - 5);
 		s = s.toLowerCase();
 		s = s.replaceAll("\\s", "");
 		// System.out.println(s);
@@ -410,13 +393,10 @@ public class MiddlewareUnit extends Thread {
 	// }
 
 	private boolean traxEnd() {
-		if (clientDataArray.size() < 6)
+		if (clientDataLen < 6)
 			return false;
-		byte[] temp = new byte[clientDataArray.size() - 5];
-		for (int i = 5; i < clientDataArray.size(); ++i) {
-			temp[i - 5] = clientDataArray.get(i).byteValue();
-		}
-		String s = new String(temp);
+		String s = new String(clientData, 5, clientDataLen - 5);
+
 		s = s.toLowerCase();
 		s = s.replaceAll("\\s", "");
 		if (s.contentEquals("commit") || s.contentEquals("rollback"))
@@ -429,46 +409,46 @@ public class MiddlewareUnit extends Thread {
 		System.out.println("client(" + clientPortNum + ") fails connection.");
 	}
 
-	private static void showClientData(ArrayList<Byte> array) {
-
-		switch (array.get(4)) {
-		case 1:
-			System.out.print("client quit");
-			break;
-		case 2:
-			System.out.print("select database: ");
-			break;
-		case 3:
-			System.out.print("");
-			break;
-		case 4:
-			System.out.print("list field: ");
-			break;
-		case 5:
-			System.out.print("create database: ");
-			break;
-		case 6:
-			System.out.print("drop database: ");
-			break;
-		default:
-			break;
-
-		}
-
-		for (int i = 5; i < array.size(); ++i) {
-			if (array.get(i) < (byte) 32) {
-				// System.out.print(new String ("'"));
-				// System.out.print((byte) b[i]);
-				// System.out.print(new String ("'"));
-				System.out.print(".");
-
-			} else if (array.get(i) >= (byte) 32 && array.get(i) < (byte) 127)
-				System.out.print((char) array.get(i).byteValue());
-			else
-				System.out.printf(" %02x ", array.get(i));
-		}
-		System.out.println();
-
-	}
+//	private void showClientData(ArrayList<Byte> array) {
+//
+//		switch (array.get(4)) {
+//		case 1:
+//			System.out.print("client quit");
+//			break;
+//		case 2:
+//			System.out.print("select database: ");
+//			break;
+//		case 3:
+//			System.out.print("");
+//			break;
+//		case 4:
+//			System.out.print("list field: ");
+//			break;
+//		case 5:
+//			System.out.print("create database: ");
+//			break;
+//		case 6:
+//			System.out.print("drop database: ");
+//			break;
+//		default:
+//			break;
+//
+//		}
+//
+//		for (int i = 5; i < array.size(); ++i) {
+//			if (array.get(i) < (byte) 32) {
+//				// System.out.print(new String ("'"));
+//				// System.out.print((byte) b[i]);
+//				// System.out.print(new String ("'"));
+//				System.out.print(".");
+//
+//			} else if (array.get(i) >= (byte) 32 && array.get(i) < (byte) 127)
+//				System.out.print((char) array.get(i).byteValue());
+//			else
+//				System.out.printf(" %02x ", array.get(i));
+//		}
+//		System.out.println();
+//
+//	}
 
 }
