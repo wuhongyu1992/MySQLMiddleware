@@ -1,3 +1,5 @@
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -8,8 +10,10 @@ public class MiddleSocket {
 	protected Socket socket;
 	protected String ipAddr;
 	protected int portNum;
-	protected DataOutputStream outData;
-	protected DataInputStream inData;
+//	protected DataOutputStream outData;
+//	protected DataInputStream inData;
+	protected BufferedOutputStream outData;
+	protected BufferedInputStream inData;
 
 	public MiddleSocket(String ip, int port) {
 		ipAddr = ip;
@@ -43,6 +47,7 @@ public class MiddleSocket {
 	public void sendOutput(byte[] b, int len) {
 		try {
 			outData.write(b, 0, len);
+			outData.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.out.println("Error in output");
@@ -68,6 +73,8 @@ public class MiddleSocket {
 
 	public void close() {
 		try {
+			inData.close();
+			outData.close();
 			socket.close();
 		} catch (IOException e) {
 			e.printStackTrace();

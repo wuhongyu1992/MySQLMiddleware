@@ -206,7 +206,6 @@ public class MiddlewareUnit extends Thread {
 			showData(serverData, serverDataLen);
 		}
 		middleServer.sendOutput(serverData, serverDataLen);
-
 		clientDataLen = middleServer.getInput(clientData);
 
 		if (sharedData.isOutputFlag()) {
